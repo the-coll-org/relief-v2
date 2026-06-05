@@ -190,6 +190,22 @@ Per the brief ("if the PowerBI ingestion mechanism cannot be determined from the
 code, STOP after writing the audit and surface it. do not guess an ingestion
 strategy") — **this is the stop point.** See §5 for the decision needed.
 
+### 2.4 Decision (resolved with user, post-audit)
+
+Surfaced to the user, who chose: **seed local SQLite from the sanctioned
+`backup-lbresponse-db.json` snapshot** (option C/2), and **authorized live reads**
+of the Firebase RTDB. No PowerBI scraper will be built (the raw→clean transform
+`reload_firebase.py` is also missing, so a scraper would still leave an undocumented
+normalization gap — guesswork the brief forbids). Implementation:
+
+- **Default/offline source = the backup snapshot** (deterministic, == live data @ 2026-05-06).
+- **`npm run ingest -- --source=firebase`** mirrors the live RTDB (`collreliefnetwork`)
+  via the committed `service-account.json` — the real refresh path, now authorized.
+- SQLite/Prisma local store; API route handlers port the old backend's
+  `entityStore` + `organizationsController`/`filtersController`/`hotlinesController`
+  normalization verbatim so behavior stays canonical.
+- The upstream PowerBI→RTDB scrape remains an external job, exactly as it always was.
+
 ---
 
 ## 3. Frontend architecture

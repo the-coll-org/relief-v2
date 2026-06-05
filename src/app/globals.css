@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   THE COLLECTIVE — canonical design tokens.
+   Components must reference these via Tailwind token utilities
+   (bg-primary, text-text-secondary, rounded-card, …). Never hex.
+   ============================================================ */
+:root {
+  /* the collective brand */
+  --color-primary: #2d4369; /* navy: headers, primary buttons, nav */
+  --color-accent-red: #890b16; /* urgent indicators, emergency hotlines */
+  --color-accent-gold: #b98a28; /* highlights, active states, freshness badges */
+  --color-light: #e5e5e5; /* page background */
+  --color-surface: #ffffff; /* cards */
+  --color-text-primary: #1a2332;
+  --color-text-secondary: #5a6478;
+  --color-text-inverse: #ffffff;
+  --color-success: #2e7d4f; /* "fresh data" indicators */
+  --color-stale: #9aa0ac; /* stale data dimming */
+
+  /* tonal tint of primary for the secondary "Map" button (light mode) */
+  --color-primary-tint: #e7ecf4;
+
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --radius-pill: 999px;
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+
+  --shadow-card: 0 1px 4px rgba(45, 67, 105, 0.08);
+
+  /* font bridges — set per locale below. next/font provides the raw vars. */
+  --font-heading: var(--font-league-spartan), system-ui, sans-serif;
+  --font-body: var(--font-montserrat), system-ui, sans-serif;
+}
+
+/* Arabic uses Cairo for both (Latin display fonts lack Arabic glyphs). */
+:root:lang(ar),
+html[dir='rtl'] {
+  --font-heading: var(--font-cairo), system-ui, sans-serif;
+  --font-body: var(--font-cairo), system-ui, sans-serif;
+}
+
+[data-theme='dark'] {
+  --color-light: #141a26;
+  --color-surface: #1e2737;
+  --color-text-primary: #e8eaef;
+  --color-text-secondary: #9aa4b8;
+  --color-primary-tint: #243450;
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+@layer base {
+  html {
+    background-color: var(--color-light);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-light);
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+  }
+  /* hide scrollbars on horizontal filter rows while keeping scroll */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

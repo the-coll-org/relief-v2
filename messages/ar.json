@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "شبكة الإغاثة",
+    "brand": "ذا كولكتيف"
+  },
+  "nav": {
+    "needHelp": "أحتاج مساعدة",
+    "helpCenter": "مركز المساعدة",
+    "map": "الخريطة"
+  },
+  "header": {
+    "needHelp": { "title": "أحتاج مساعدة", "subtitle": "اختر نوع المساعدة التي تحتاجها" },
+    "helpCenter": { "title": "مركز المساعدة", "subtitle": "خطوط الطوارئ ودليل المساعدة" },
+    "map": { "title": "خريطة الموارد", "subtitle": "عرض مباشر للمنظمات الفاعلة على الأرض" }
+  },
+  "actions": {
+    "toggleTheme": "تبديل الوضع الداكن",
+    "toggleLanguage": "English",
+    "languageName": "ع"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "scrollToTop": "العودة إلى الأعلى"
+  }
+}

@@ -4,5 +4,7 @@ dist/
 *.local
 .env
 .DS_Store
-qa/
 prisma/dev.db*
+test-results/
+playwright-report/
+.next/

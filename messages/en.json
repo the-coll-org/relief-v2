@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "Relief Network",
+    "brand": "The Collective"
+  },
+  "nav": {
+    "needHelp": "Need Help",
+    "helpCenter": "Help Center",
+    "map": "Map"
+  },
+  "header": {
+    "needHelp": { "title": "Need Help", "subtitle": "Choose the type of support you need" },
+    "helpCenter": { "title": "Help Center", "subtitle": "Emergency hotlines and the help directory" },
+    "map": { "title": "Resource Map", "subtitle": "Live view of active organizations on the ground" }
+  },
+  "actions": {
+    "toggleTheme": "Toggle dark mode",
+    "toggleLanguage": "العربية",
+    "languageName": "EN"
+  },
+  "common": {
+    "loading": "Loading…",
+    "scrollToTop": "Scroll to top"
+  }
+}
