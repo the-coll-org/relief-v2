@@ -10,6 +10,7 @@ import { OrganizationCard } from '@/components/cards/OrganizationCard';
 import { FiltersSheet } from '@/components/ui/FiltersSheet';
 import { MoreFiltersButton } from '@/components/ui/MoreFiltersButton';
 import { useFilterOptions } from '@/components/ui/useFilterOptions';
+import { arabicHotlineCategory } from '@/lib/i18nLabels';
 
 const PAGE_SIZE = 12;
 
@@ -31,6 +32,7 @@ function toCard(h: EmergencyContact, isArabic: boolean) {
     title: h.name_en || h.name_ar || h.id,
     title_ar: h.name_ar,
     categoryLabel: h.category || null,
+    categoryLabel_ar: arabicHotlineCategory(h.category),
     sectors: [h.category],
     description: h.email ?? null,
     locations: city ? [city] : isArabic ? ['على مستوى الوطن'] : ['Nationwide'],

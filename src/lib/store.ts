@@ -3,6 +3,7 @@
 // name-validity filter. Source is now SQLite (via Prisma) instead of RTDB.
 
 import { prisma } from './db';
+import { arabicDistrictBySlug } from './i18nLabels';
 import type {
   CategoryRecord,
   EmergencyContact,
@@ -77,10 +78,15 @@ async function load(): Promise<Snapshot> {
 
   const categories: Record<string, CategoryRecord[]> = {};
   for (const c of categoryRows) {
+    // The PowerBI scrape only provides English; overlay a static Arabic label
+    // for districts (cazas) so it survives refreshes and the filter UI can
+    // render Arabic in Arabic mode.
+    const arLabel =
+      c.arLabel ?? (c.type === 'district' ? arabicDistrictBySlug(c.key) : null);
     (categories[c.type] ??= []).push({
       key: c.key,
       en_label: c.enLabel,
-      ar_label: c.arLabel,
+      ar_label: arLabel,
       sort_order: c.sortOrder,
     });
   }

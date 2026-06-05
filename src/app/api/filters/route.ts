@@ -68,7 +68,7 @@ export async function GET() {
     options: CRN_CATEGORY_OPTIONS.map((opt, i) => ({
       id: opt.id,
       label: opt.label,
-      label_ar: null,
+      label_ar: opt.label_ar,
       result_count: categoryCounts.get(opt.id) ?? 0,
       display_order: i,
     })),

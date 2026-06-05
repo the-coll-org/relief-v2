@@ -5,36 +5,42 @@
 export interface CrnCategory {
   id: string;
   label: string;
+  label_ar: string;
 }
 
 export interface NormalizedCategory {
   id: string;
   label: string;
+  label_ar: string;
   raw_name: string;
 }
+
+const SAFETY = { id: 'safety_protection', label: 'Safety & Protection', label_ar: 'الحماية والسلامة' };
+const CASH = { id: 'cash_livelihood', label: 'Cash and Livelihood', label_ar: 'النقد وسبل العيش' };
+const FOOD = { id: 'food_nutrition', label: 'Food and Nutrition', label_ar: 'الغذاء والتغذية' };
+const SHELTER = { id: 'shelter_nfi', label: 'Shelter / NFI', label_ar: 'المأوى والمواد غير الغذائية' };
+const WASH = { id: 'wash_hygiene', label: 'WASH and Hygiene', label_ar: 'المياه والصرف الصحي والنظافة' };
+const EDUCATION = { id: 'education', label: 'Education', label_ar: 'التعليم' };
 
 // PowerBI (UN) sector name → CRN user-facing category
 export const SERVICE_CATEGORY_MAP: Record<string, CrnCategory> = {
   // Safety & Protection umbrella
-  'Child Protection': { id: 'safety_protection', label: 'Safety & Protection' },
-  GBV: { id: 'safety_protection', label: 'Safety & Protection' },
-  Protection: { id: 'safety_protection', label: 'Safety & Protection' },
-  'Social Stability': { id: 'safety_protection', label: 'Safety & Protection' },
+  'Child Protection': SAFETY,
+  GBV: SAFETY,
+  Protection: SAFETY,
+  'Social Stability': SAFETY,
   // Cash & Livelihood umbrella
-  CWG: { id: 'cash_livelihood', label: 'Cash and Livelihood' },
-  Livelihoods: { id: 'cash_livelihood', label: 'Cash and Livelihood' },
+  CWG: CASH,
+  Livelihoods: CASH,
   // Food & Nutrition umbrella
-  'Food Security & Agriculture': {
-    id: 'food_nutrition',
-    label: 'Food and Nutrition',
-  },
-  Nutrition: { id: 'food_nutrition', label: 'Food and Nutrition' },
+  'Food Security & Agriculture': FOOD,
+  Nutrition: FOOD,
   // Shelter / NFI
-  Shelter: { id: 'shelter_nfi', label: 'Shelter / NFI' },
+  Shelter: SHELTER,
   // WASH
-  WaSH: { id: 'wash_hygiene', label: 'WASH and Hygiene' },
+  WaSH: WASH,
   // Education (no CRN equivalent yet, kept for completeness)
-  Education: { id: 'education', label: 'Education' },
+  Education: EDUCATION,
 };
 
 const LOOKUP = new Map<string, CrnCategory>(
@@ -44,8 +50,9 @@ const LOOKUP = new Map<string, CrnCategory>(
 export function normalizeCategory(raw: string): NormalizedCategory {
   const trimmed = (raw ?? '').trim();
   const hit = LOOKUP.get(trimmed.toLowerCase());
-  if (hit) return { id: hit.id, label: hit.label, raw_name: trimmed };
-  return { id: 'unknown', label: trimmed, raw_name: trimmed };
+  if (hit) return { id: hit.id, label: hit.label, label_ar: hit.label_ar, raw_name: trimmed };
+  // Unknown categories have no Arabic source → fall back to the raw label.
+  return { id: 'unknown', label: trimmed, label_ar: trimmed, raw_name: trimmed };
 }
 
 export function normalizeCategories(

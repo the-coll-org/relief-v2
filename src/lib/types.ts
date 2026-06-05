@@ -52,6 +52,7 @@ export interface CategoryRecord {
 export interface NormalizedCategoryDto {
   id: string;
   label: string;
+  label_ar: string;
   raw_name: string;
 }
 

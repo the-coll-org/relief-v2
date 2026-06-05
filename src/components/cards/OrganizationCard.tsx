@@ -10,9 +10,12 @@ export interface OrgCardData {
   title: string;
   title_ar?: string | null;
   categoryLabel: string | null;
+  categoryLabel_ar?: string | null;
   sectors: string[];
   description: string | null;
   locations: string[];
+  /** Arabic-localized zones, same order/length as `locations`. */
+  locations_ar?: string[];
   phone: string | null;
   whatsapp: string | null;
   updated_at: string | null;
@@ -56,11 +59,15 @@ export function OrganizationCard(props: OrgCardData) {
   const [showAllZones, setShowAllZones] = useState(false);
 
   const title = isArabic && props.title_ar ? props.title_ar : props.title;
+  const categoryLabel =
+    isArabic && props.categoryLabel_ar ? props.categoryLabel_ar : props.categoryLabel;
   const icon = deriveSectorIcon(props.sectors);
   const rel = formatRelativeTime(props.updated_at, isArabic);
   const stale = isStale(props.updated_at);
   const phone = props.phone;
-  const zones = props.locations.filter(Boolean);
+  const zones = (isArabic && props.locations_ar ? props.locations_ar : props.locations).filter(
+    Boolean
+  );
   const visibleZones = showAllZones ? zones : zones.slice(0, 2);
   const extra = zones.length - visibleZones.length;
 
@@ -75,9 +82,9 @@ export function OrganizationCard(props: OrgCardData) {
             <h3 className="font-heading text-base font-semibold leading-tight text-text-primary">
               {title}
             </h3>
-            {props.categoryLabel && (
+            {categoryLabel && (
               <span className="rounded-pill bg-accent-gold/15 px-2 py-0.5 text-xs font-medium text-accent-gold">
-                {props.categoryLabel}
+                {categoryLabel}
               </span>
             )}
           </div>

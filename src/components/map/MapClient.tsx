@@ -12,6 +12,7 @@ import { OrganizationCard } from '@/components/cards/OrganizationCard';
 import { FiltersSheet } from '@/components/ui/FiltersSheet';
 import { MoreFiltersButton } from '@/components/ui/MoreFiltersButton';
 import { useFilterOptions } from '@/components/ui/useFilterOptions';
+import { arabicDistrict } from '@/lib/i18nLabels';
 import { LebanonMap } from './LebanonMap';
 
 const PAGE_SIZE = 10;
@@ -33,9 +34,11 @@ function toCard(dto: OrganizationDto) {
     title: dto.title,
     title_ar: dto.title_ar,
     categoryLabel: dto.categories[0]?.label ?? dto.organization_type,
+    categoryLabel_ar: dto.categories[0]?.label_ar ?? dto.organization_type,
     sectors: dto.sectors,
     description: dto.description,
     locations: dto.locations,
+    locations_ar: dto.locations.map(arabicDistrict),
     phone: dto.phone_numbers[0] ?? null,
     whatsapp: dto.whatsapp,
     updated_at: dto.updated_at,
