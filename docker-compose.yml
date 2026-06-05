@@ -1,0 +1,49 @@
+# Per-checkout stack. The always-on `app` serves traffic; the `refresh` service
+# is a one-shot DB seeder/scraper invoked on demand (initial bring-up) and on a
+# 6-hourly schedule by a host systemd timer via `docker compose run --rm refresh`.
+#   prod (main checkout):       APP_PORT=3210 docker compose up -d app
+#   testing (develop checkout): APP_PORT=3110 docker compose up -d app
+# The Compose project name comes from the directory, so each checkout gets its
+# own isolated `reliefdb` volume.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=file:/data/relief.db
+    volumes:
+      - reliefdb:/data
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+  # One-shot: `docker compose run --rm refresh`. Not started by `up`.
+  refresh:
+    build:
+      context: .
+      dockerfile: Dockerfile.refresh
+    environment:
+      - DATABASE_URL=file:/data/relief.db
+      - SCRAPER_DIR=/scraper
+      - APP_DIR=/app
+      - NPM=npm
+      - REFRESH_MODE=oneshot
+    volumes:
+      - reliefdb:/data
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  reliefdb:

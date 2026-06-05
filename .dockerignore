@@ -1,0 +1,18 @@
+# Keep the build context small. NOTE: data/ is intentionally NOT ignored —
+# the refresh image needs data/backup-lbresponse-db.json (the out-of-band seed)
+# to populate hotlines on a fresh volume.
+.git
+node_modules
+.next
+dist
+test-results
+playwright-report
+qa
+tests
+logs
+data/live-entities.json
+*.log
+.env
+.DS_Store
+Dockerfile*
+docker-compose.yml

@@ -1,0 +1,49 @@
+name: deploy
+
+# Auto-build & deploy on push:
+#   main    -> production  (rn.thecoll.org,         127.0.0.1:3210)
+#   develop -> testing     (testing-rn.thecoll.org, 127.0.0.1:3110)
+#
+# Requires a self-hosted runner registered on the host (45.88.188.119) with the
+# labels [self-hosted, relief]. Until that runner exists this workflow is inert
+# (queued, harmless). The two server checkouts live at the dirs below; the
+# gitignored seed snapshot is delivered out-of-band from /home/chris/repos/.relief-seed.
+on:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, relief]
+    steps:
+      - name: Resolve environment
+        id: env
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "dir=/home/chris/repos/relief-v2"          >> "$GITHUB_OUTPUT"
+            echo "port=3210"                                 >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=/home/chris/repos/relief-v2-develop"  >> "$GITHUB_OUTPUT"
+            echo "port=3110"                                 >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull & deploy
+        run: |
+          set -euo pipefail
+          cd "${{ steps.env.outputs.dir }}"
+          git fetch --all --prune
+          git checkout "${{ github.ref_name }}"
+          git reset --hard "origin/${{ github.ref_name }}"
+          # Deliver the gitignored seed snapshot (hotlines) out-of-band.
+          mkdir -p data
+          cp -f /home/chris/repos/.relief-seed/backup-lbresponse-db.json data/backup-lbresponse-db.json
+          export APP_PORT="${{ steps.env.outputs.port }}"
+          docker compose build
+          # Seed-if-empty + one live refresh (one-shot), then (re)start the app.
+          docker compose run --rm refresh
+          docker compose up -d app
+          docker image prune -f

@@ -2,8 +2,13 @@
 // 00:00 / 06:00 / 12:00 / 18:00 UTC — every 6 hours. Kept simple and dependency
 // -free; pm2 restarts it if it ever crashes.
 import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const SCRIPT = '/home/chris/repos/relief-v2/scripts/refresh-live.sh';
+// Resolve refresh-live.sh next to this file so it works both under host pm2
+// (/home/chris/repos/relief-v2/scripts) and inside the Docker refresh image
+// (/app/scripts). Override with REFRESH_SCRIPT if needed.
+const SCRIPT =
+  process.env.REFRESH_SCRIPT ?? fileURLToPath(new URL('./refresh-live.sh', import.meta.url));
 
 function runRefresh() {
   console.log(new Date().toISOString(), 'starting refresh-live');

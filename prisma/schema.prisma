@@ -10,7 +10,9 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  // Local dev sets DATABASE_URL=file:./prisma/dev.db (see .env.example);
+  // Docker sets DATABASE_URL=file:/data/relief.db on the mounted volume.
+  url      = env("DATABASE_URL")
 }
 
 model Provider {
