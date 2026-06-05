@@ -51,6 +51,27 @@
       "unsupported": "Location is not available on this device."
     }
   },
+  "map": {
+    "filters": {
+      "clothes": "Clothes & Blankets",
+      "shelter": "Shelter",
+      "medical": "Medical",
+      "food": "Food & Water",
+      "nearby": "Near me"
+    },
+    "cities": {
+      "akkar": "Akkar",
+      "tripoli": "Tripoli",
+      "beirut": "Beirut",
+      "baalbek": "Baalbek",
+      "bekaa": "Bekaa",
+      "nabatieh": "Nabatieh",
+      "south": "South"
+    },
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "tapHint": "Tap a region to see its organizations"
+  },
   "helpCenter": {
     "emergencyTitle": "Emergency Hotlines",
     "searchPlaceholder": "Search hospitals, borders, services",

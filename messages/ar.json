@@ -51,6 +51,27 @@
       "unsupported": "خدمة الموقع غير متاحة على هذا الجهاز."
     }
   },
+  "map": {
+    "filters": {
+      "clothes": "ملابس وبطانيات",
+      "shelter": "مأوى",
+      "medical": "طبي",
+      "food": "طعام وماء",
+      "nearby": "بالقرب مني"
+    },
+    "cities": {
+      "akkar": "عكار",
+      "tripoli": "طرابلس",
+      "beirut": "بيروت",
+      "baalbek": "بعلبك",
+      "bekaa": "البقاع",
+      "nabatieh": "النبطية",
+      "south": "الجنوب"
+    },
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "tapHint": "اضغط على منطقة لعرض منظماتها"
+  },
   "helpCenter": {
     "emergencyTitle": "خطوط الطوارئ",
     "searchPlaceholder": "ابحث عن المستشفيات والمعابر والخدمات",

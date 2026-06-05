@@ -1,6 +1,7 @@
+import { Suspense } from 'react';
 import { setRequestLocale } from 'next-intl/server';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { PhasePlaceholder } from '@/components/PhasePlaceholder';
+import { MapClient } from '@/components/map/MapClient';
 
 export default async function MapPage({
   params,
@@ -13,7 +14,9 @@ export default async function MapPage({
     <>
       <ScreenHeader screen="map" />
       <main className="flex-1 px-md py-lg">
-        <PhasePlaceholder screen="map" />
+        <Suspense>
+          <MapClient />
+        </Suspense>
       </main>
     </>
   );
