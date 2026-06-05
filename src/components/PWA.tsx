@@ -10,6 +10,19 @@ export function PWA() {
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
+      // If a service worker already controls this page (e.g. a returning visitor
+      // still under the OLD site's worker, or an earlier version of this app),
+      // reload once when our new worker takes over so they swap to the current
+      // app without a manual refresh. First-time visitors (no existing
+      // controller) are not reloaded. This also makes future deploys seamless.
+      const hadController = !!navigator.serviceWorker.controller;
+      let reloaded = false;
+      const onControllerChange = () => {
+        if (reloaded || !hadController) return;
+        reloaded = true;
+        window.location.reload();
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
       navigator.serviceWorker.register('/sw.js').catch(() => {
         /* SW registration is best-effort */
       });
