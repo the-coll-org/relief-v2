@@ -21,5 +21,34 @@
   "common": {
     "loading": "Loading…",
     "scrollToTop": "Scroll to top"
+  },
+  "card": {
+    "call": "Call {number}",
+    "map": "Map",
+    "moreZones": "+{count} more",
+    "unavailable": "No number available"
+  },
+  "needHelp": {
+    "searchPlaceholder": "Search by organization or area",
+    "resultCount": "{shown} / {total} organizations",
+    "resultUnit": "organizations",
+    "loadMore": "Load more",
+    "pills": {
+      "nearest": "Closest to me",
+      "food": "Food and water",
+      "medical": "Medical care",
+      "shelter": "Shelter and housing",
+      "clothes": "Clothes and blankets",
+      "safety": "Safety and protection",
+      "cash": "Cash and livelihood"
+    },
+    "empty": {
+      "title": "No organizations found",
+      "subtitle": "Try a different search or filter."
+    },
+    "geo": {
+      "denied": "Location access denied. Showing the default order.",
+      "unsupported": "Location is not available on this device."
+    }
   }
 }

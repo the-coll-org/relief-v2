@@ -21,5 +21,34 @@
   "common": {
     "loading": "جارٍ التحميل…",
     "scrollToTop": "العودة إلى الأعلى"
+  },
+  "card": {
+    "call": "اتصل بـ {number}",
+    "map": "الخريطة",
+    "moreZones": "+{count} أخرى",
+    "unavailable": "لا يوجد رقم متاح"
+  },
+  "needHelp": {
+    "searchPlaceholder": "ابحث حسب المنظمة أو المنطقة",
+    "resultCount": "{shown} / {total} منظمة",
+    "resultUnit": "منظمة",
+    "loadMore": "تحميل المزيد",
+    "pills": {
+      "nearest": "الأقرب إليّ",
+      "food": "طعام وماء",
+      "medical": "رعاية طبية",
+      "shelter": "مأوى وسكن",
+      "clothes": "ملابس وبطانيات",
+      "safety": "الحماية والسلامة",
+      "cash": "نقد ومعيشة"
+    },
+    "empty": {
+      "title": "لا توجد منظمات",
+      "subtitle": "جرّب بحثًا أو تصفية مختلفة."
+    },
+    "geo": {
+      "denied": "تم رفض الوصول إلى الموقع. عرض الترتيب الافتراضي.",
+      "unsupported": "خدمة الموقع غير متاحة على هذا الجهاز."
+    }
   }
 }

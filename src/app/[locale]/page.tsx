@@ -1,6 +1,6 @@
 import { setRequestLocale } from 'next-intl/server';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { PhasePlaceholder } from '@/components/PhasePlaceholder';
+import { NeedHelpClient } from '@/components/need-help/NeedHelpClient';
 
 export default async function NeedHelpPage({
   params,
@@ -13,7 +13,7 @@ export default async function NeedHelpPage({
     <>
       <ScreenHeader screen="needHelp" />
       <main className="flex-1 px-md py-lg">
-        <PhasePlaceholder screen="needHelp" />
+        <NeedHelpClient />
       </main>
     </>
   );
