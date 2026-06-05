@@ -16,8 +16,8 @@ export interface OrgCardData {
   phone: string | null;
   whatsapp: string | null;
   updated_at: string | null;
-  /** Map deep-link, e.g. "/map?focus=akkar". */
-  mapHref: string;
+  /** Map deep-link, e.g. "/map?focus=akkar". Omit/null to hide the map button. */
+  mapHref?: string | null;
 }
 
 function PhoneIcon() {
@@ -132,14 +132,16 @@ export function OrganizationCard(props: OrgCardData) {
             {t('unavailable')}
           </span>
         )}
-        <Link
-          href={props.mapHref}
-          className="flex items-center justify-center gap-2 rounded-button bg-primary-tint px-md py-2.5 text-sm font-semibold text-primary"
-          aria-label={t('map')}
-        >
-          <MapPinIcon />
-          <span>{t('map')}</span>
-        </Link>
+        {props.mapHref && (
+          <Link
+            href={props.mapHref}
+            className="flex items-center justify-center gap-2 rounded-button bg-primary-tint px-md py-2.5 text-sm font-semibold text-primary"
+            aria-label={t('map')}
+          >
+            <MapPinIcon />
+            <span>{t('map')}</span>
+          </Link>
+        )}
       </div>
     </article>
   );

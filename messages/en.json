@@ -50,5 +50,16 @@
       "denied": "Location access denied. Showing the default order.",
       "unsupported": "Location is not available on this device."
     }
+  },
+  "helpCenter": {
+    "emergencyTitle": "Emergency Hotlines",
+    "searchPlaceholder": "Search hospitals, borders, services",
+    "resultUnit": "results",
+    "services": {
+      "medical": "Medical care",
+      "safety": "Safety & Protection",
+      "cash": "Cash & Livelihood",
+      "emergency": "Emergency"
+    }
   }
 }

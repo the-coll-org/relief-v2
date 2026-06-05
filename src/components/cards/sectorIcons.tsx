@@ -57,11 +57,11 @@ export function deriveSectorIcon(sectors: string[]): SectorIcon {
   const n = sectors.map((s) => s.toLowerCase());
   const has = (...keys: string[]) => n.some((s) => keys.some((k) => s.includes(k)));
   if (has('food', 'wash', 'water', 'nutrition')) return 'food';
-  if (has('health', 'medical')) return 'medical';
+  if (has('health', 'medical', 'hospital', 'mental')) return 'medical';
   if (has('shelter', 'housing')) return 'shelter';
   if (has('cloth', 'nfi')) return 'clothes';
-  if (has('gbv', 'protection', 'child', 'social')) return 'safety';
-  if (has('cwg', 'livelihood', 'cash')) return 'cash';
+  if (has('gbv', 'protection', 'child', 'social', 'security', 'fire')) return 'safety';
+  if (has('cwg', 'livelihood', 'cash', 'financial')) return 'cash';
   if (has('education')) return 'education';
   return 'shelter';
 }
