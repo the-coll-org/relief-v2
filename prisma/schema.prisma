@@ -1,0 +1,66 @@
+// SQLite local store mirroring the audited Firebase RTDB shape.
+// Nested objects / string arrays are stored as JSON strings (SQLite has no
+// array/json column type) and parsed in src/lib/store.ts so the ported
+// normalization logic operates on the exact same Provider/Hotline shapes the
+// old Express backend used.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Provider {
+  id               String  @id // provider_id
+  name             String // provider_name
+  nameAr           String? // provider_name_ar
+  slug             String?
+  primaryContact   String? // JSON ProviderContact
+  secondaryContact String? // JSON ProviderContact
+  sectors          String  @default("[]") // JSON string[]
+  districts        String  @default("[]") // JSON string[]
+  services         String  @default("[]") // JSON ProviderService[]
+  serviceCount     Int     @default(0)
+  isNameValid      Boolean @default(true)
+  pinned           Boolean @default(false)
+  verified         Boolean @default(false)
+  updatedAt        String? // ISO timestamp
+
+  @@index([name])
+}
+
+model Hotline {
+  id         String  @id
+  category   String  @default("")
+  city       String  @default("")
+  nameEn     String  @default("")
+  nameAr     String?
+  hotline    String?
+  phone      String?
+  email      String?
+  sourceUrl  String?
+  insertedAt String?
+  updatedAt  String?
+
+  @@index([category])
+  @@index([city])
+}
+
+model Category {
+  id        String @id // "{type}:{key}", e.g. "sector:gbv"
+  type      String // "sector" | "district"
+  key       String
+  enLabel   String
+  arLabel   String?
+  sortOrder Int    @default(0)
+
+  @@index([type])
+}
+
+model Meta {
+  key   String @id
+  value String // JSON
+}
