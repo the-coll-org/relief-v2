@@ -23,6 +23,16 @@
     "loading": "Loading…",
     "scrollToTop": "Scroll to top"
   },
+  "filters": {
+    "button": "More filters",
+    "title": "Filter Results",
+    "district": "District",
+    "serviceType": "Service Type",
+    "reset": "Reset",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "apply": "Apply ({count} results)"
+  },
   "card": {
     "call": "Call {number}",
     "map": "Map",

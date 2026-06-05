@@ -101,11 +101,9 @@ export function OrganizationCard(props: OrgCardData) {
       {zones.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <MapPinIcon />
-          {visibleZones.map((z) => (
-            <span key={z} className="text-sm text-text-secondary">
-              {z}
-            </span>
-          ))}
+          <span className="text-sm text-text-secondary">
+            {visibleZones.join(isArabic ? '، ' : ', ')}
+          </span>
           {extra > 0 && (
             <button
               type="button"

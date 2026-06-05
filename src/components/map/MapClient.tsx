@@ -9,6 +9,9 @@ import { distanceToDistricts } from '@/lib/districtGeo';
 import { FilterPills, type Pill } from '@/components/ui/FilterPills';
 import { Toast } from '@/components/ui/Toast';
 import { OrganizationCard } from '@/components/cards/OrganizationCard';
+import { FiltersSheet } from '@/components/ui/FiltersSheet';
+import { MoreFiltersButton } from '@/components/ui/MoreFiltersButton';
+import { useFilterOptions } from '@/components/ui/useFilterOptions';
 import { LebanonMap } from './LebanonMap';
 
 const PAGE_SIZE = 10;
@@ -44,6 +47,7 @@ export function MapClient() {
   const t = useTranslations('map');
   const tn = useTranslations('needHelp');
   const tc = useTranslations('common');
+  const tf = useTranslations('filters');
   const focusParam = useSearchParams().get('focus');
 
   const [activePills, setActivePills] = useState<string[]>([]);
@@ -55,16 +59,29 @@ export function MapClient() {
   const [loadingOrgs, setLoadingOrgs] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  // "More filters": Service Type only — location on the map is the tapped region.
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetServices, setSheetServices] = useState<string[]>([]);
+  const { categories: categoryOptions } = useFilterOptions();
   const orgReq = useRef(0);
 
-  // AND-of-groups: each selected category pill is one ";"-separated group.
+  // OR union: quick pills ∪ sheet service types → one comma category group.
   const category = useMemo(() => {
-    const groups = activePills
+    const pillCats = activePills
       .map((id) => PILL_DEFS.find((p) => p.id === id))
       .filter((p): p is (typeof PILL_DEFS)[number] => !!p && !p.geo && !!p.category)
       .map((p) => p.category as string);
-    return groups.length ? groups.join(';') : null;
-  }, [activePills]);
+    const cats = [...pillCats, ...sheetServices];
+    return cats.length ? cats.join(',') : null;
+  }, [activePills, sheetServices]);
+
+  const fetchSheetCount = useCallback(async (_d: string[], services: string[]) => {
+    const p = new URLSearchParams();
+    p.set('page_size', '1');
+    if (services.length) p.set('category', services.join(','));
+    const json = await (await fetch(`/api/organizations?${p.toString()}`)).json();
+    return json.total as number;
+  }, []);
 
   const pills: Pill[] = useMemo(
     () => PILL_DEFS.map((p) => ({ id: p.id, label: t(`filters.${p.id}`) })),
@@ -121,8 +138,14 @@ export function MapClient() {
     [category]
   );
 
+  // Dedupe: on desktop a tap fires both the marker onClick and the capture-phase
+  // pointer hit-test; ignore a repeat of the same marker within a short window.
+  const lastSel = useRef<{ id: string; t: number }>({ id: '', t: 0 });
   const selectMarker = useCallback(
     (markerId: string) => {
+      const now = Date.now();
+      if (lastSel.current.id === markerId && now - lastSel.current.t < 600) return;
+      lastSel.current = { id: markerId, t: now };
       setSelected(markerId);
       fetchRegion(markerId, 1, false);
     },
@@ -183,7 +206,16 @@ export function MapClient() {
 
   return (
     <div className="flex flex-col gap-md">
-      <FilterPills pills={pills} activeIds={activePills} onToggle={onTogglePill} />
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <FilterPills pills={pills} activeIds={activePills} onToggle={onTogglePill} />
+        </div>
+        <MoreFiltersButton
+          label={tf('button')}
+          count={sheetServices.length}
+          onClick={() => setSheetOpen(true)}
+        />
+      </div>
 
       <LebanonMap
         counts={counts}
@@ -244,6 +276,27 @@ export function MapClient() {
       )}
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
+
+      <FiltersSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={tf('title')}
+        districtLabel={tf('district')}
+        serviceLabel={tf('serviceType')}
+        resetLabel={tf('reset')}
+        showMoreLabel={tf('showMore')}
+        showLessLabel={tf('showLess')}
+        applyLabel={(n) => tf('apply', { count: n })}
+        districtOptions={[]}
+        serviceOptions={categoryOptions}
+        initialDistricts={[]}
+        initialServices={sheetServices}
+        fetchCount={fetchSheetCount}
+        onApply={(_d, s) => {
+          setSheetServices(s);
+          setSheetOpen(false);
+        }}
+      />
     </div>
   );
 }

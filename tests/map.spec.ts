@@ -47,3 +47,21 @@ test('deep-link ?focus=akkar opens the Akkar region', async ({ page }) => {
   await page.goto('/en/map?focus=akkar');
   await expect(page.getByRole('heading', { name: 'Akkar' })).toBeVisible();
 });
+
+test('mobile touch: tapping a cluster reveals the region list beneath the map', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await context.newPage();
+  await page.goto('/en/map');
+  const marker = page.locator('[data-marker-id="beirut"]');
+  await expect(marker).toBeVisible();
+  await marker.tap();
+  await expect(page.getByRole('heading', { name: 'Beirut' })).toBeVisible();
+  await expect(page.locator('article').first()).toBeVisible();
+  await context.close();
+});

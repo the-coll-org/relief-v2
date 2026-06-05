@@ -23,6 +23,16 @@
     "loading": "جارٍ التحميل…",
     "scrollToTop": "العودة إلى الأعلى"
   },
+  "filters": {
+    "button": "المزيد من الفلاتر",
+    "title": "تصفية النتائج",
+    "district": "القضاء",
+    "serviceType": "نوع الخدمة",
+    "reset": "إعادة تعيين",
+    "showMore": "عرض المزيد",
+    "showLess": "عرض أقل",
+    "apply": "تطبيق ({count} نتيجة)"
+  },
   "card": {
     "call": "اتصل بـ {number}",
     "map": "الخريطة",

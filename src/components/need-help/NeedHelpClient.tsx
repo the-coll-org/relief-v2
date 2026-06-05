@@ -8,6 +8,9 @@ import { FilterPills, type Pill } from '@/components/ui/FilterPills';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
 import { Toast } from '@/components/ui/Toast';
 import { OrganizationCard } from '@/components/cards/OrganizationCard';
+import { FiltersSheet } from '@/components/ui/FiltersSheet';
+import { MoreFiltersButton } from '@/components/ui/MoreFiltersButton';
+import { useFilterOptions } from '@/components/ui/useFilterOptions';
 import { distanceToDistricts } from '@/lib/districtGeo';
 
 const PAGE_SIZE = 10;
@@ -46,6 +49,7 @@ function toCard(dto: OrganizationDto) {
 export function NeedHelpClient() {
   const t = useTranslations('needHelp');
   const tc = useTranslations('common');
+  const tf = useTranslations('filters');
 
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
@@ -57,6 +61,11 @@ export function NeedHelpClient() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  // "More filters" sheet: districts → location, services → extra categories.
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetDistricts, setSheetDistricts] = useState<string[]>([]);
+  const [sheetServices, setSheetServices] = useState<string[]>([]);
+  const { districts: districtOptions, categories: categoryOptions } = useFilterOptions();
   const reqId = useRef(0);
 
   // debounce search
@@ -70,14 +79,23 @@ export function NeedHelpClient() {
     [t]
   );
 
-  // AND-of-groups param: one selected category pill = one ";"-separated group.
-  const activeCategory = useMemo(() => {
-    const groups = activePills
-      .map((id) => PILL_DEFS.find((p) => p.id === id))
-      .filter((p): p is (typeof PILL_DEFS)[number] => !!p && !p.geo && !!p.category)
-      .map((p) => p.category as string);
-    return groups.join(';');
-  }, [activePills]);
+  // Category ids from the quick pills (OR union).
+  const pillCats = useMemo(
+    () =>
+      activePills
+        .map((id) => PILL_DEFS.find((p) => p.id === id))
+        .filter((p): p is (typeof PILL_DEFS)[number] => !!p && !p.geo && !!p.category)
+        .map((p) => p.category as string),
+    [activePills]
+  );
+
+  // category = (pills ∪ sheet services), all OR. location = sheet districts (OR).
+  // Backend ANDs location with the category group → location AND (cat OR cat…).
+  const activeCategory = useMemo(
+    () => [...pillCats, ...sheetServices].join(','),
+    [pillCats, sheetServices]
+  );
+  const activeLocation = useMemo(() => sheetDistricts.join(','), [sheetDistricts]);
 
   const nearestActive = activePills.includes('nearest');
 
@@ -91,9 +109,24 @@ export function NeedHelpClient() {
         p.set('sort', 'relevance');
       }
       if (activeCategory) p.set('category', activeCategory);
+      if (activeLocation) p.set('location', activeLocation);
       return `/api/organizations?${p.toString()}`;
     },
-    [debounced, activeCategory]
+    [debounced, activeCategory, activeLocation]
+  );
+
+  // Live count for the sheet's pending selection (combined with active pills).
+  const fetchSheetCount = useCallback(
+    async (districts: string[], services: string[]) => {
+      const p = new URLSearchParams();
+      p.set('page_size', '1');
+      const cats = [...pillCats, ...services];
+      if (cats.length) p.set('category', cats.join(','));
+      if (districts.length) p.set('location', districts.join(','));
+      const json = await (await fetch(`/api/organizations?${p.toString()}`)).json();
+      return json.total as number;
+    },
+    [pillCats]
   );
 
   // Primary load (page 1) — re-runs on search / filter / geo change.
@@ -173,7 +206,16 @@ export function NeedHelpClient() {
 
   return (
     <div className="flex flex-col gap-md">
-      <SearchBar value={query} onChange={setQuery} placeholder={t('searchPlaceholder')} />
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <SearchBar value={query} onChange={setQuery} placeholder={t('searchPlaceholder')} />
+        </div>
+        <MoreFiltersButton
+          label={tf('button')}
+          count={sheetDistricts.length + sheetServices.length}
+          onClick={() => setSheetOpen(true)}
+        />
+      </div>
       <FilterPills pills={pills} activeIds={activePills} onToggle={onTogglePill} />
 
       <p className="text-sm font-medium text-text-secondary">
@@ -218,6 +260,28 @@ export function NeedHelpClient() {
 
       <ScrollToTop label={tc('scrollToTop')} />
       <Toast message={toast} onDismiss={() => setToast(null)} />
+
+      <FiltersSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={tf('title')}
+        districtLabel={tf('district')}
+        serviceLabel={tf('serviceType')}
+        resetLabel={tf('reset')}
+        showMoreLabel={tf('showMore')}
+        showLessLabel={tf('showLess')}
+        applyLabel={(n) => tf('apply', { count: n })}
+        districtOptions={districtOptions}
+        serviceOptions={categoryOptions}
+        initialDistricts={sheetDistricts}
+        initialServices={sheetServices}
+        fetchCount={fetchSheetCount}
+        onApply={(d, s) => {
+          setSheetDistricts(d);
+          setSheetServices(s);
+          setSheetOpen(false);
+        }}
+      />
     </div>
   );
 }

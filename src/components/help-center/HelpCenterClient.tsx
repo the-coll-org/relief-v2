@@ -7,6 +7,9 @@ import { SearchBar } from '@/components/ui/SearchBar';
 import { FilterPills, type Pill } from '@/components/ui/FilterPills';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
 import { OrganizationCard } from '@/components/cards/OrganizationCard';
+import { FiltersSheet } from '@/components/ui/FiltersSheet';
+import { MoreFiltersButton } from '@/components/ui/MoreFiltersButton';
+import { useFilterOptions } from '@/components/ui/useFilterOptions';
 
 const PAGE_SIZE = 12;
 
@@ -42,6 +45,7 @@ export function HelpCenterClient() {
   const t = useTranslations('helpCenter');
   const tc = useTranslations('common');
   const tn = useTranslations('needHelp');
+  const tf = useTranslations('filters');
   const locale = useLocale();
   const isArabic = locale === 'ar';
 
@@ -53,7 +57,23 @@ export function HelpCenterClient() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  // "More filters": district → city (slug-matched), service type → categories.
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetDistricts, setSheetDistricts] = useState<string[]>([]);
+  const [sheetServices, setSheetServices] = useState<string[]>([]);
+  const { districts: districtOptions } = useFilterOptions();
   const reqId = useRef(0);
+
+  const serviceOptions = useMemo(
+    () => SERVICE_PILLS.map((p) => ({ id: p.id, label: t(`services.${p.id}`) })),
+    [t]
+  );
+  const idsToCategories = useCallback((ids: string[]) => {
+    const cats = ids
+      .map((id) => SERVICE_PILLS.find((p) => p.id === id)?.categories)
+      .filter((c): c is string => !!c);
+    return cats.join(',');
+  }, []);
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(query.trim()), 300);
@@ -65,14 +85,14 @@ export function HelpCenterClient() {
     [t]
   );
 
-  // Hotlines hold a single category, so multi-select here is an OR-union of
-  // every selected service type's underlying categories.
+  // Hotlines hold one category, so service-type selection is OR-unioned. Pills
+  // and the sheet's service types both contribute. district → city (slug, OR);
+  // backend ANDs city with the category union → location AND (cat OR cat…).
   const activeCategories = useMemo(() => {
-    const cats = activePills
-      .map((id) => SERVICE_PILLS.find((p) => p.id === id)?.categories)
-      .filter((c): c is string => !!c);
-    return cats.length ? cats.join(',') : null;
-  }, [activePills]);
+    const cats = idsToCategories([...new Set([...activePills, ...sheetServices])]);
+    return cats || null;
+  }, [activePills, sheetServices, idsToCategories]);
+  const activeCity = useMemo(() => sheetDistricts.join(','), [sheetDistricts]);
 
   const buildUrl = useCallback(
     (pageNum: number) => {
@@ -81,9 +101,23 @@ export function HelpCenterClient() {
       p.set('page_size', String(PAGE_SIZE));
       if (debounced) p.set('search', debounced);
       if (activeCategories) p.set('category', activeCategories);
+      if (activeCity) p.set('city', activeCity);
       return `/api/hotlines?${p.toString()}`;
     },
-    [debounced, activeCategories]
+    [debounced, activeCategories, activeCity]
+  );
+
+  const fetchSheetCount = useCallback(
+    async (districts: string[], services: string[]) => {
+      const p = new URLSearchParams();
+      p.set('page_size', '1');
+      const cats = idsToCategories([...new Set([...activePills, ...services])]);
+      if (cats) p.set('category', cats);
+      if (districts.length) p.set('city', districts.join(','));
+      const json = await (await fetch(`/api/hotlines?${p.toString()}`)).json();
+      return json.total as number;
+    },
+    [activePills, idsToCategories]
   );
 
   useEffect(() => {
@@ -123,7 +157,16 @@ export function HelpCenterClient() {
 
   return (
     <div className="flex flex-col gap-md">
-      <SearchBar value={query} onChange={setQuery} placeholder={t('searchPlaceholder')} />
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <SearchBar value={query} onChange={setQuery} placeholder={t('searchPlaceholder')} />
+        </div>
+        <MoreFiltersButton
+          label={tf('button')}
+          count={sheetDistricts.length + sheetServices.length}
+          onClick={() => setSheetOpen(true)}
+        />
+      </div>
       <FilterPills
         pills={pills}
         activeIds={activePills}
@@ -175,6 +218,28 @@ export function HelpCenterClient() {
       )}
 
       <ScrollToTop label={tc('scrollToTop')} />
+
+      <FiltersSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={tf('title')}
+        districtLabel={tf('district')}
+        serviceLabel={tf('serviceType')}
+        resetLabel={tf('reset')}
+        showMoreLabel={tf('showMore')}
+        showLessLabel={tf('showLess')}
+        applyLabel={(n) => tf('apply', { count: n })}
+        districtOptions={districtOptions}
+        serviceOptions={serviceOptions}
+        initialDistricts={sheetDistricts}
+        initialServices={sheetServices}
+        fetchCount={fetchSheetCount}
+        onApply={(d, s) => {
+          setSheetDistricts(d);
+          setSheetServices(s);
+          setSheetOpen(false);
+        }}
+      />
     </div>
   );
 }

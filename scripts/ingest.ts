@@ -10,6 +10,11 @@
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+
+// tsx doesn't auto-load .env; default the DB path (schema-relative → prisma/dev.db)
+// so `npm run ingest` works standalone. Docker/host .env can override.
+process.env.DATABASE_URL ||= 'file:./dev.db';
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();

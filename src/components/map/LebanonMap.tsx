@@ -27,6 +27,7 @@ export function LebanonMap({
   const t = useTranslations('map');
   const svgRef = useRef<SVGSVGElement | null>(null);
   const pzRef = useRef<PanZoom | null>(null);
+  const tapStart = useRef<{ x: number; y: number; t: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +45,8 @@ export function LebanonMap({
         maxZoom: 12,
         zoomScaleSensitivity: 0.3,
         dblClickZoomEnabled: false,
+        // Don't swallow child mouse events — we hit-test taps ourselves below.
+        preventMouseEventsDefault: false,
       }) as unknown as PanZoom;
     });
     return () => {
@@ -57,8 +60,33 @@ export function LebanonMap({
     };
   }, []);
 
+  // Capture-phase tap detection: svg-pan-zoom consumes the tap/synthesized click
+  // on touch (and touch-action:none cancels it), so on mobile the marker onClick
+  // never fires. We record pointer-down, and on a near-stationary pointer-up we
+  // hit-test the point against the marker under it. Works for mouse + touch and
+  // is independent of the pan/zoom transform.
+  function onPointerDownCapture(e: React.PointerEvent) {
+    tapStart.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+  }
+  function onPointerUpCapture(e: React.PointerEvent) {
+    const s = tapStart.current;
+    tapStart.current = null;
+    if (!s) return;
+    const moved = Math.abs(e.clientX - s.x) > 8 || Math.abs(e.clientY - s.y) > 8;
+    if (moved || e.timeStamp - s.t > 500) return; // a drag/pan, not a tap
+    const hit = document
+      .elementFromPoint(e.clientX, e.clientY)
+      ?.closest('[data-marker-id]');
+    const id = hit?.getAttribute('data-marker-id');
+    if (id) onSelect(id);
+  }
+
   return (
-    <div className="relative overflow-hidden rounded-card bg-surface shadow-card">
+    <div
+      className="relative overflow-hidden rounded-card bg-surface shadow-card"
+      onPointerDownCapture={onPointerDownCapture}
+      onPointerUpCapture={onPointerUpCapture}
+    >
       <svg
         ref={svgRef}
         viewBox="0 0 250 326"
@@ -73,6 +101,7 @@ export function LebanonMap({
           return (
             <g
               key={m.id}
+              data-marker-id={m.id}
               role="button"
               tabIndex={0}
               aria-label={`${t(`cities.${m.nameKey}`)}: ${count}`}
@@ -82,6 +111,8 @@ export function LebanonMap({
               }}
               style={{ cursor: 'pointer' }}
             >
+              {/* enlarged, invisible-but-hit-testable tap target */}
+              <circle cx={m.x} cy={m.y} r={17} fill="transparent" />
               <circle
                 cx={m.x}
                 cy={m.y}
