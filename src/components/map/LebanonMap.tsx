@@ -24,7 +24,7 @@ export function LebanonMap({
   zoomInLabel: string;
   zoomOutLabel: string;
 }) {
-  const t = useTranslations('map.cities');
+  const t = useTranslations('map');
   const svgRef = useRef<SVGSVGElement | null>(null);
   const pzRef = useRef<PanZoom | null>(null);
 
@@ -63,7 +63,7 @@ export function LebanonMap({
         ref={svgRef}
         viewBox="0 0 250 326"
         role="img"
-        aria-label="Lebanon resource map"
+        aria-label={t('aria')}
         className="h-[60vh] max-h-[520px] w-full touch-none"
       >
         <image href="/map.svg" x="0" y="0" width="250" height="326" opacity="0.9" />
@@ -75,7 +75,7 @@ export function LebanonMap({
               key={m.id}
               role="button"
               tabIndex={0}
-              aria-label={`${t(m.nameKey)}: ${count}`}
+              aria-label={`${t(`cities.${m.nameKey}`)}: ${count}`}
               onClick={() => onSelect(m.id)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') onSelect(m.id);
@@ -109,7 +109,7 @@ export function LebanonMap({
                 fontWeight="600"
                 fill="var(--color-text-primary)"
               >
-                {t(m.nameKey)}
+                {t(`cities.${m.nameKey}`)}
               </text>
             </g>
           );

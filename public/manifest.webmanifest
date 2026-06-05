@@ -1,0 +1,21 @@
+{
+  "name": "Relief Network — The Collective",
+  "short_name": "Relief Network",
+  "description": "Find food, shelter, medical care and emergency hotlines across Lebanon.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E5E5E5",
+  "theme_color": "#2D4369",
+  "icons": [
+    {
+      "src": "/icon-app.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

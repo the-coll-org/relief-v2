@@ -7,6 +7,7 @@ import { Cairo, League_Spartan, Montserrat } from 'next/font/google';
 import { routing } from '@/i18n/routing';
 import { ThemeScript } from '@/components/ThemeScript';
 import { BottomNav } from '@/components/BottomNav';
+import { PWA } from '@/components/PWA';
 import '../globals.css';
 
 const leagueSpartan = League_Spartan({
@@ -32,6 +33,8 @@ export const metadata: Metadata = {
   title: 'Relief Network — The Collective',
   description:
     'Find food, shelter, medical care and emergency hotlines across Lebanon.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Relief Network' },
 };
 
 export const viewport: Viewport = {
@@ -72,6 +75,7 @@ export default async function LocaleLayout({
       </head>
       <body className="min-h-dvh bg-light text-text-primary antialiased">
         <NextIntlClientProvider messages={messages}>
+          <PWA />
           <div className="mx-auto flex min-h-dvh w-full max-w-screen-sm flex-col pb-28">
             {children}
           </div>

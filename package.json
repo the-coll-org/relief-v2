@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "ingest": "tsx scripts/ingest.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",

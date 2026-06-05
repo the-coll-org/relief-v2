@@ -70,7 +70,11 @@
     },
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
-    "tapHint": "Tap a region to see its organizations"
+    "tapHint": "Tap a region to see its organizations",
+    "aria": "Lebanon resource map"
+  },
+  "offline": {
+    "banner": "You're offline — showing the most recently saved data."
   },
   "helpCenter": {
     "emergencyTitle": "Emergency Hotlines",
