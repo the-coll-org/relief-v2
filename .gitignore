@@ -13,3 +13,6 @@ data/live-entities.json
 # never committed to this public repo (see infra-handoff.md "Privacy note").
 data/backup-lbresponse-db.json
 logs/
+
+# Internal ops handoff — server IP + credential pointers; never in the public repo.
+infra-handoff.md
