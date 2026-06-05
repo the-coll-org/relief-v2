@@ -1,0 +1,8 @@
+node_modules/
+.next/
+dist/
+*.local
+.env
+.DS_Store
+qa/
+prisma/dev.db*
