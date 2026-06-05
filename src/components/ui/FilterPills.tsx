@@ -10,18 +10,18 @@ export interface Pill {
 
 export function FilterPills({
   pills,
-  activeId,
+  activeIds,
   onToggle,
 }: {
   pills: Pill[];
-  activeId: string | null;
+  activeIds: string[];
   onToggle: (id: string) => void;
 }) {
   return (
     <div className="-mx-md overflow-x-auto px-md no-scrollbar">
       <div className="flex w-max items-center gap-2">
         {pills.map((p) => {
-          const active = p.id === activeId;
+          const active = activeIds.includes(p.id);
           return (
             <button
               key={p.id}

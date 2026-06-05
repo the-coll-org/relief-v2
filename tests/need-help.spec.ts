@@ -30,6 +30,23 @@ test('a sector pill filters results', async ({ page }) => {
   await expect.poll(totalOf).toBeLessThan(allTotal);
 });
 
+test('multiple filters narrow results (AND)', async ({ page }) => {
+  await page.goto('/en');
+  const count = page.getByText(/\/\s*\d+\s*organizations/);
+  await expect(page.locator('article').first()).toBeVisible();
+  const totalOf = async () =>
+    Number((await count.textContent())?.match(/\/\s*(\d+)/)?.[1] ?? '0');
+  await expect.poll(totalOf).toBeGreaterThan(50);
+
+  await page.getByRole('button', { name: 'Safety and protection' }).click();
+  await expect.poll(totalOf).toBeGreaterThan(0);
+  const afterOne = await totalOf();
+
+  // adding a second filter must narrow (AND), never widen
+  await page.getByRole('button', { name: 'Food and water' }).click();
+  await expect.poll(totalOf).toBeLessThanOrEqual(afterOne);
+});
+
 test('call button renders a valid tel: href', async ({ page }) => {
   await page.goto('/en');
   const call = page.getByRole('link', { name: /^Call / }).first();

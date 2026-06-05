@@ -234,11 +234,17 @@ interface FilterParams {
   types: string[];
   sectorFilter: string[];
   locationFilter: string[];
-  categoryFilter?: string[];
+  /**
+   * AND-of-groups: the org must match EVERY group, and matches a group if it
+   * has ANY of that group's category ids. One pill = one group (a pill may map
+   * to several ids, e.g. food → [food_nutrition, wash_hygiene]). Selecting
+   * multiple pills therefore narrows results (AND), per product decision.
+   */
+  categoryGroups?: string[][];
 }
 
 export function filterDtos(dtos: OrganizationDto[], params: FilterParams): OrganizationDto[] {
-  const { types, sectorFilter, locationFilter, categoryFilter = [] } = params;
+  const { types, sectorFilter, locationFilter, categoryGroups = [] } = params;
   return dtos.filter((dto) => {
     if (types.length && !types.includes((dto.organization_type ?? '').toLowerCase()))
       return false;
@@ -250,12 +256,25 @@ export function filterDtos(dtos: OrganizationDto[], params: FilterParams): Organ
     )
       return false;
     if (
-      categoryFilter.length &&
-      !dto.categories.some((c) => categoryFilter.includes(c.id))
+      categoryGroups.length &&
+      !categoryGroups.every((group) => dto.categories.some((c) => group.includes(c.id)))
     )
       return false;
     return true;
   });
+}
+
+/** Parse the `category` query param into AND-of-groups: ";"=AND, ","=OR. */
+export function parseCategoryGroups(raw: string): string[][] {
+  return raw
+    .split(';')
+    .map((group) =>
+      group
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean)
+    )
+    .filter((group) => group.length > 0);
 }
 
 export function scoreMatch(dto: OrganizationDto, q: string): number {

@@ -76,7 +76,7 @@ export default async function LocaleLayout({
       <body className="min-h-dvh bg-light text-text-primary antialiased">
         <NextIntlClientProvider messages={messages}>
           <PWA />
-          <div className="mx-auto flex min-h-dvh w-full max-w-screen-sm flex-col pb-28">
+          <div className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col pb-28">
             {children}
           </div>
           <BottomNav />

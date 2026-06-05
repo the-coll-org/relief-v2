@@ -49,7 +49,7 @@ export function NeedHelpClient() {
 
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
-  const [activePill, setActivePill] = useState<string | null>(null);
+  const [activePills, setActivePills] = useState<string[]>([]);
   const [items, setItems] = useState<OrganizationDto[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -70,12 +70,16 @@ export function NeedHelpClient() {
     [t]
   );
 
+  // AND-of-groups param: one selected category pill = one ";"-separated group.
   const activeCategory = useMemo(() => {
-    const def = PILL_DEFS.find((p) => p.id === activePill);
-    return def && !def.geo ? def.category : null;
-  }, [activePill]);
+    const groups = activePills
+      .map((id) => PILL_DEFS.find((p) => p.id === id))
+      .filter((p): p is (typeof PILL_DEFS)[number] => !!p && !p.geo && !!p.category)
+      .map((p) => p.category as string);
+    return groups.join(';');
+  }, [activePills]);
 
-  const nearestActive = activePill === 'nearest';
+  const nearestActive = activePills.includes('nearest');
 
   const buildUrl = useCallback(
     (pageNum: number, pageSize: number) => {
@@ -140,9 +144,9 @@ export function NeedHelpClient() {
 
   const onTogglePill = useCallback(
     (id: string) => {
-      if (id === activePill) {
-        setActivePill(null);
-        setUserCoords(null);
+      if (activePills.includes(id)) {
+        setActivePills((prev) => prev.filter((x) => x !== id));
+        if (id === 'nearest') setUserCoords(null);
         return;
       }
       if (id === 'nearest') {
@@ -153,17 +157,16 @@ export function NeedHelpClient() {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             setUserCoords([pos.coords.latitude, pos.coords.longitude]);
-            setActivePill('nearest');
+            setActivePills((prev) => [...prev, 'nearest']);
           },
           () => setToast(t('geo.denied')),
           { timeout: 8000 }
         );
         return;
       }
-      setActivePill(id);
-      setUserCoords(null);
+      setActivePills((prev) => [...prev, id]);
     },
-    [activePill, t]
+    [activePills, t]
   );
 
   const canLoadMore = !nearestActive && items.length < total;
@@ -171,7 +174,7 @@ export function NeedHelpClient() {
   return (
     <div className="flex flex-col gap-md">
       <SearchBar value={query} onChange={setQuery} placeholder={t('searchPlaceholder')} />
-      <FilterPills pills={pills} activeId={activePill} onToggle={onTogglePill} />
+      <FilterPills pills={pills} activeIds={activePills} onToggle={onTogglePill} />
 
       <p className="text-sm font-medium text-text-secondary">
         <span dir="ltr" className="tabular-nums">
@@ -181,7 +184,7 @@ export function NeedHelpClient() {
       </p>
 
       {loading ? (
-        <div className="grid gap-md sm:grid-cols-2">
+        <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-44 animate-pulse rounded-card bg-surface shadow-card" />
           ))}
@@ -195,7 +198,7 @@ export function NeedHelpClient() {
         </div>
       ) : (
         <>
-          <div className="grid gap-md sm:grid-cols-2">
+          <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
             {items.map((dto) => (
               <OrganizationCard key={dto.id} {...toCard(dto)} />
             ))}

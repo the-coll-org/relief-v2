@@ -48,7 +48,7 @@ export function BottomNav() {
 
   return (
     <nav
-      aria-label={t('needHelp')}
+      aria-label={t('aria')}
       className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-md pb-[max(env(safe-area-inset-bottom),12px)]"
     >
       <ul className="flex w-full max-w-[360px] items-stretch justify-between gap-1 rounded-pill border border-black/5 bg-surface p-1.5 shadow-card">

@@ -1,7 +1,7 @@
 // Relief Network service worker — app-shell + read-only data caching so a
 // repeat visit works offline (brief phase 6). Bump CACHE to invalidate.
-const CACHE = 'relief-v2-v1';
-const SHELL = ['/', '/help-center', '/map', '/map.svg', '/icon-app.svg', '/manifest.webmanifest'];
+const CACHE = 'relief-v2-v2';
+const SHELL = ['/', '/help-center', '/map', '/map.svg', '/crn-mark.png', '/icon-512.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

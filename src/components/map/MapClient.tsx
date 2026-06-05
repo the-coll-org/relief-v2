@@ -46,7 +46,7 @@ export function MapClient() {
   const tc = useTranslations('common');
   const focusParam = useSearchParams().get('focus');
 
-  const [activePill, setActivePill] = useState<string | null>(null);
+  const [activePills, setActivePills] = useState<string[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [orgs, setOrgs] = useState<OrganizationDto[]>([]);
@@ -57,10 +57,14 @@ export function MapClient() {
   const [toast, setToast] = useState<string | null>(null);
   const orgReq = useRef(0);
 
+  // AND-of-groups: each selected category pill is one ";"-separated group.
   const category = useMemo(() => {
-    const def = PILL_DEFS.find((p) => p.id === activePill);
-    return def && !def.geo ? def.category : null;
-  }, [activePill]);
+    const groups = activePills
+      .map((id) => PILL_DEFS.find((p) => p.id === id))
+      .filter((p): p is (typeof PILL_DEFS)[number] => !!p && !p.geo && !!p.category)
+      .map((p) => p.category as string);
+    return groups.length ? groups.join(';') : null;
+  }, [activePills]);
 
   const pills: Pill[] = useMemo(
     () => PILL_DEFS.map((p) => ({ id: p.id, label: t(`filters.${p.id}`) })),
@@ -144,8 +148,8 @@ export function MapClient() {
 
   const onTogglePill = useCallback(
     (id: string) => {
-      if (id === activePill) {
-        setActivePill(null);
+      if (activePills.includes(id)) {
+        setActivePills((prev) => prev.filter((x) => x !== id));
         return;
       }
       if (id === 'nearby') {
@@ -172,14 +176,14 @@ export function MapClient() {
         );
         return;
       }
-      setActivePill(id);
+      setActivePills((prev) => [...prev, id]);
     },
-    [activePill, tn, selectMarker]
+    [activePills, tn, selectMarker]
   );
 
   return (
     <div className="flex flex-col gap-md">
-      <FilterPills pills={pills} activeId={activePill} onToggle={onTogglePill} />
+      <FilterPills pills={pills} activeIds={activePills} onToggle={onTogglePill} />
 
       <LebanonMap
         counts={counts}
@@ -204,7 +208,7 @@ export function MapClient() {
           </div>
 
           {loadingOrgs ? (
-            <div className="grid gap-md sm:grid-cols-2">
+            <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 2 }).map((_, i) => (
                 <div key={i} className="h-40 animate-pulse rounded-card bg-surface shadow-card" />
               ))}
@@ -215,7 +219,7 @@ export function MapClient() {
             </div>
           ) : (
             <>
-              <div className="grid gap-md sm:grid-cols-2">
+              <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
                 {orgs.map((dto) => (
                   <OrganizationCard key={dto.id} {...toCard(dto)} />
                 ))}

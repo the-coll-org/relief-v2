@@ -4,6 +4,7 @@ import {
   buildMergedDtos,
   clampInt,
   filterDtos,
+  parseCategoryGroups,
   scoreMatch,
   slugify,
   str,
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
   const types = toArray(searchParams.get('organization_type')).map((s) => s.toLowerCase());
   const sectorFilter = toArray(searchParams.get('sector')).map(slugify);
   const locationFilter = toArray(searchParams.get('location')).map(slugify);
-  const categoryFilter = toArray(searchParams.get('category')).map((s) => s.toLowerCase());
+  const categoryGroups = parseCategoryGroups(str(searchParams.get('category')));
   const sort = searchParams.get('sort') === 'relevance' ? 'relevance' : 'az';
   const page = clampInt(searchParams.get('page'), 1);
   const pageSize = clampInt(searchParams.get('page_size'), 10, 1, 100);
@@ -35,7 +36,7 @@ export async function GET(req: Request) {
     types,
     sectorFilter,
     locationFilter,
-    categoryFilter,
+    categoryGroups,
   });
 
   const scored: { dto: OrganizationDto; score: number }[] = [];

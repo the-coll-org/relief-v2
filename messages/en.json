@@ -6,7 +6,8 @@
   "nav": {
     "needHelp": "Need Help",
     "helpCenter": "Help Center",
-    "map": "Map"
+    "map": "Map",
+    "aria": "Main navigation"
   },
   "header": {
     "needHelp": { "title": "Need Help", "subtitle": "Choose the type of support you need" },

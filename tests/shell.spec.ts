@@ -39,13 +39,15 @@ test('dark mode toggle persists across reload', async ({ page }) => {
 
 test('all three tabs route correctly', async ({ page }) => {
   await page.goto('/');
+  // scope to the bottom-nav landmark (card buttons share these labels)
+  const nav = page.getByRole('navigation', { name: 'التنقل الرئيسي' });
 
-  await page.getByRole('link', { name: 'مركز المساعدة' }).click();
+  await nav.getByRole('link', { name: 'مركز المساعدة' }).click();
   await expect(page).toHaveURL(/\/help-center$/);
 
-  await page.getByRole('link', { name: 'الخريطة' }).click();
+  await nav.getByRole('link', { name: 'الخريطة' }).click();
   await expect(page).toHaveURL(/\/map$/);
 
-  await page.getByRole('link', { name: 'أحتاج مساعدة' }).click();
+  await nav.getByRole('link', { name: 'أحتاج مساعدة' }).click();
   await expect(page).toHaveURL(/\/$|\/ar$/);
 });

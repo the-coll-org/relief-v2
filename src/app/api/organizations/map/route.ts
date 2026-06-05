@@ -4,7 +4,9 @@ import {
   buildMergedDtos,
   buildRegionGroups,
   filterDtos,
+  parseCategoryGroups,
   slugify,
+  str,
   toArray,
 } from '@/lib/organizations';
 
@@ -19,14 +21,14 @@ export async function GET(req: Request) {
   const types = toArray(searchParams.get('organization_type')).map((s) => s.toLowerCase());
   const sectorFilter = toArray(searchParams.get('sector')).map(slugify);
   const locationFilter = toArray(searchParams.get('location')).map(slugify);
-  const categoryFilter = toArray(searchParams.get('category')).map((s) => s.toLowerCase());
+  const categoryGroups = parseCategoryGroups(str(searchParams.get('category')));
 
   const mergedDtos = buildMergedDtos(providers, locations);
   const filtered = filterDtos(mergedDtos, {
     types,
     sectorFilter,
     locationFilter,
-    categoryFilter,
+    categoryGroups,
   });
 
   const data = buildRegionGroups(filtered);

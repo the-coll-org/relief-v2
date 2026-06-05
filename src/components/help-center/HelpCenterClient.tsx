@@ -47,7 +47,7 @@ export function HelpCenterClient() {
 
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
-  const [activePill, setActivePill] = useState<string | null>(null);
+  const [activePills, setActivePills] = useState<string[]>([]);
   const [items, setItems] = useState<EmergencyContact[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -65,10 +65,14 @@ export function HelpCenterClient() {
     [t]
   );
 
-  const activeCategories = useMemo(
-    () => SERVICE_PILLS.find((p) => p.id === activePill)?.categories ?? null,
-    [activePill]
-  );
+  // Hotlines hold a single category, so multi-select here is an OR-union of
+  // every selected service type's underlying categories.
+  const activeCategories = useMemo(() => {
+    const cats = activePills
+      .map((id) => SERVICE_PILLS.find((p) => p.id === id)?.categories)
+      .filter((c): c is string => !!c);
+    return cats.length ? cats.join(',') : null;
+  }, [activePills]);
 
   const buildUrl = useCallback(
     (pageNum: number) => {
@@ -122,8 +126,12 @@ export function HelpCenterClient() {
       <SearchBar value={query} onChange={setQuery} placeholder={t('searchPlaceholder')} />
       <FilterPills
         pills={pills}
-        activeId={activePill}
-        onToggle={(id) => setActivePill((cur) => (cur === id ? null : id))}
+        activeIds={activePills}
+        onToggle={(id) =>
+          setActivePills((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+          )
+        }
       />
 
       <p className="text-sm font-medium text-text-secondary">
@@ -134,7 +142,7 @@ export function HelpCenterClient() {
       </p>
 
       {loading ? (
-        <div className="grid gap-md sm:grid-cols-2">
+        <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-40 animate-pulse rounded-card bg-surface shadow-card" />
           ))}
@@ -148,7 +156,7 @@ export function HelpCenterClient() {
         </div>
       ) : (
         <>
-          <div className="grid gap-md sm:grid-cols-2">
+          <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
             {items.map((h) => (
               <OrganizationCard key={h.id} {...toCard(h, isArabic)} />
             ))}

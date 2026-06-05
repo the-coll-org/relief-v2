@@ -1,11 +1,18 @@
-/** The Collective brand mark — an "LB" disc used in the header. */
+/** The Collective Relief Network brand mark (cedar/triangle), on a white disc
+ * so it reads on the navy header. Wordmark is intentionally not used in-app. */
 export function LogoMark({ className = '' }: { className?: string }) {
   return (
     <span
-      className={`grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-text-inverse font-heading text-sm font-bold text-primary shadow-card ${className}`}
-      aria-hidden="true"
+      className={`grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-pill bg-white shadow-card ${className}`}
     >
-      LB
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/crn-mark.png"
+        alt="The Collective Relief Network"
+        width={28}
+        height={28}
+        className="h-7 w-7 object-contain"
+      />
     </span>
   );
 }
