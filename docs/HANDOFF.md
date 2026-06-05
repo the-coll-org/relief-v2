@@ -40,25 +40,41 @@ already-normalized data, seeded into SQLite.
 
 ## Ingestion — how data gets in, and its schedule
 
-```bash
-# Default: seed from the bundled snapshot (data/backup-lbresponse-db.json).
-npm run ingest
+**Live pipeline (active).** Real PowerBI data, refreshed every 6 hours. It scrapes
+PowerBI directly (no browser, no Firebase), denormalizes, and **upserts** into
+SQLite:
 
-# Refresh from the LIVE Firebase Realtime Database (project collreliefnetwork):
-FIREBASE_SERVICE_ACCOUNT=/home/chris/repos/lbresponse-api/service-account.json \
-  npm run ingest -- --source=firebase
+```bash
+# One manual refresh (scrape → build JSON → upsert):
+/home/chris/repos/relief-v2/scripts/refresh-live.sh
 ```
 
-- A full ingest **replaces** the SQLite contents (clear + bulk insert) and writes
-  metadata to the `Meta` table (source, ingested_at, upstream `last_mirrored`,
-  counts). Inspect via `GET /api/status`.
-- **Schedule:** the old backend ran **no cron** — freshness came from the
-  external mirror writing Firebase. To keep the live mirror current, add a cron
-  on this server, e.g. nightly (the upstream scrape is ~daily):
-  ```cron
-  30 3 * * *  cd /home/chris/repos/relief-v2 && FIREBASE_SERVICE_ACCOUNT=/home/chris/repos/lbresponse-api/service-account.json /home/chris/.local/bin/npm run ingest -- --source=firebase >> /tmp/relief-ingest.log 2>&1
-  ```
-  Until that's wired, the app serves the snapshot (data as of 2026-05-06).
+That script runs three steps (see `scripts/`):
+1. `lbresponse-scrapper/.venv/bin/python main.py --no-firebase --no-database --csv once`
+   — scrapes the Service Mapping table to `lbresponse-scrapper/output/*.csv`.
+2. `build_entities_json.py` — reuses the scraper's own `reload_firebase`
+   denormalization to write `data/live-entities.json`.
+3. `npm run ingest -- --source=live` — **upserts** by deterministic `provider_id`:
+   updates scraped fields, **preserves manual `pinned`/`verified`**, inserts new
+   orgs, **never deletes**, and **never touches the 103 hotlines** (those aren't
+   scraped — they're a separate dataset, currently seeded from the backup).
+
+**Schedule:** `scripts/scheduler.mjs` runs under pm2 as **`relief-v2-refresh`** and
+fires `refresh-live.sh` at **00:00 / 06:00 / 12:00 / 18:00 UTC** (matching the
+upstream scraper's 6-hour cadence). `pm2 logs relief-v2-refresh` to watch it; the
+crontab spool isn't writable for this user, hence pm2 rather than cron.
+
+**Seeding / other sources** (`scripts/ingest.ts`):
+```bash
+npm run ingest                         # full replace from data/backup-lbresponse-db.json
+npm run ingest -- --source=firebase    # full replace by mirroring the live RTDB
+npm run ingest -- --source=live        # UPSERT from data/live-entities.json (used by cron)
+```
+Inspect state any time via `GET /api/status` (counts, source, last ingest time).
+
+> Scraper venv: created at `lbresponse-scrapper/.venv` (pip bootstrapped via
+> get-pip.py since the box has no system pip/venv package). Recreate with
+> `python3 -m venv --without-pip .venv && .venv/bin/python <(curl -s https://bootstrap.pypa.io/get-pip.py) && .venv/bin/pip install -r requirements.txt Pillow`.
 
 ---
 

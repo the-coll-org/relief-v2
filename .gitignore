@@ -8,3 +8,5 @@ prisma/dev.db*
 test-results/
 playwright-report/
 .next/
+data/live-entities.json
+logs/

@@ -73,6 +73,13 @@ async function loadFromBackup(): Promise<RawTree> {
   return JSON.parse(readFileSync(file, 'utf8')) as RawTree;
 }
 
+async function loadFromLive(): Promise<RawTree> {
+  // Produced by scripts/build_entities_json.py from a fresh PowerBI scrape.
+  const file = resolve(process.cwd(), 'data/live-entities.json');
+  console.log(`Source: live scrape ${file}`);
+  return JSON.parse(readFileSync(file, 'utf8')) as RawTree;
+}
+
 async function loadFromFirebase(): Promise<RawTree> {
   // Lazy import so the default (backup) path never needs firebase-admin.
   const admin = (await import('firebase-admin')).default;
@@ -162,50 +169,105 @@ function hotlineRows(tree: RawTree) {
   }));
 }
 
-async function main() {
-  const source = arg('source') ?? 'backup';
-  const tree = source === 'firebase' ? await loadFromFirebase() : await loadFromBackup();
+const chunk = <T>(arr: T[], n: number) =>
+  Array.from({ length: Math.ceil(arr.length / n) }, (_, i) => arr.slice(i * n, i * n + n));
 
+async function writeMeta(source: string, tree: RawTree, counts: object) {
+  await prisma.meta.upsert({
+    where: { key: 'source' },
+    update: { value: JSON.stringify(source) },
+    create: { key: 'source', value: JSON.stringify(source) },
+  });
+  await prisma.meta.upsert({
+    where: { key: 'ingested_at' },
+    update: { value: JSON.stringify(new Date().toISOString()) },
+    create: { key: 'ingested_at', value: JSON.stringify(new Date().toISOString()) },
+  });
+  await prisma.meta.upsert({
+    where: { key: 'upstream_metadata' },
+    update: { value: JSON.stringify(tree.entities_metadata ?? null) },
+    create: { key: 'upstream_metadata', value: JSON.stringify(tree.entities_metadata ?? null) },
+  });
+  await prisma.meta.upsert({
+    where: { key: 'counts' },
+    update: { value: JSON.stringify(counts) },
+    create: { key: 'counts', value: JSON.stringify(counts) },
+  });
+}
+
+// Full refresh — used for seeding (backup) or a fresh Firebase mirror.
+async function fullRefresh(source: string, tree: RawTree) {
   const cats = categoryRows(tree);
   const provs = providerRows(tree);
   const hots = hotlineRows(tree);
-
   console.log(`Parsed: ${provs.length} providers, ${hots.length} hotlines, ${cats.length} categories`);
 
-  // Full refresh: clear then bulk insert.
   await prisma.$transaction([
     prisma.provider.deleteMany(),
     prisma.hotline.deleteMany(),
     prisma.category.deleteMany(),
     prisma.meta.deleteMany(),
   ]);
-
-  const chunk = <T>(arr: T[], n: number) =>
-    Array.from({ length: Math.ceil(arr.length / n) }, (_, i) => arr.slice(i * n, i * n + n));
-
   for (const c of chunk(provs, 200)) await prisma.provider.createMany({ data: c });
   for (const c of chunk(hots, 200)) await prisma.hotline.createMany({ data: c });
   for (const c of chunk(cats, 200)) await prisma.category.createMany({ data: c });
-
-  await prisma.meta.createMany({
-    data: [
-      { key: 'source', value: JSON.stringify(source) },
-      { key: 'ingested_at', value: JSON.stringify(new Date().toISOString()) },
-      {
-        key: 'upstream_metadata',
-        value: JSON.stringify(tree.entities_metadata ?? null),
-      },
-      {
-        key: 'counts',
-        value: JSON.stringify({
-          providers: provs.length,
-          hotlines: hots.length,
-          categories: cats.length,
-        }),
-      },
-    ],
+  await writeMeta(source, tree, {
+    providers: provs.length,
+    hotlines: hots.length,
+    categories: cats.length,
   });
+}
 
+// Upsert — used for the live 6-hour scrape. Updates existing orgs with fresh
+// scraped fields but PRESERVES manual pinned/verified flags; inserts new orgs;
+// never deletes; never touches the (separately-sourced) hotlines.
+async function upsertLive(source: string, tree: RawTree) {
+  const cats = categoryRows(tree);
+  const provs = providerRows(tree);
+  console.log(`Parsed (live): ${provs.length} providers, ${cats.length} categories`);
+
+  const existing = await prisma.provider.findMany({
+    select: { id: true, pinned: true, verified: true },
+  });
+  const flags = new Map(existing.map((e) => [e.id, e]));
+
+  let updated = 0;
+  let inserted = 0;
+  for (const p of provs) {
+    const prev = flags.get(p.id);
+    // preserve a manually-set true flag even if the scrape defaults it to false
+    const data = {
+      ...p,
+      pinned: (prev?.pinned ?? false) || p.pinned,
+      verified: (prev?.verified ?? false) || p.verified,
+    };
+    await prisma.provider.upsert({ where: { id: p.id }, update: data, create: data });
+    if (prev) updated++;
+    else inserted++;
+  }
+
+  for (const c of cats) {
+    await prisma.category.upsert({ where: { id: c.id }, update: c, create: c });
+  }
+
+  const hotlineCount = await prisma.hotline.count();
+  await writeMeta(source, tree, {
+    providers: await prisma.provider.count(),
+    hotlines: hotlineCount,
+    categories: await prisma.category.count(),
+  });
+  console.log(`Upsert: ${updated} updated, ${inserted} inserted, hotlines untouched (${hotlineCount}).`);
+}
+
+async function main() {
+  const source = arg('source') ?? 'backup';
+  if (source === 'live') {
+    await upsertLive(source, await loadFromLive());
+  } else if (source === 'firebase') {
+    await fullRefresh(source, await loadFromFirebase());
+  } else {
+    await fullRefresh(source, await loadFromBackup());
+  }
   const providerCount = await prisma.provider.count();
   console.log(`✓ Ingest complete. providers in DB: ${providerCount}`);
 }

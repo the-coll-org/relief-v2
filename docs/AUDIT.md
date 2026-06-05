@@ -194,17 +194,39 @@ strategy") — **this is the stop point.** See §5 for the decision needed.
 
 Surfaced to the user, who chose: **seed local SQLite from the sanctioned
 `backup-lbresponse-db.json` snapshot** (option C/2), and **authorized live reads**
-of the Firebase RTDB. No PowerBI scraper will be built (the raw→clean transform
-`reload_firebase.py` is also missing, so a scraper would still leave an undocumented
-normalization gap — guesswork the brief forbids). Implementation:
+of the Firebase RTDB. SQLite/Prisma local store; API route handlers port the old
+backend's `entityStore` + `organizationsController`/`filtersController`/
+`hotlinesController` normalization verbatim so behavior stays canonical.
 
-- **Default/offline source = the backup snapshot** (deterministic, == live data @ 2026-05-06).
-- **`npm run ingest -- --source=firebase`** mirrors the live RTDB (`collreliefnetwork`)
-  via the committed `service-account.json` — the real refresh path, now authorized.
-- SQLite/Prisma local store; API route handlers port the old backend's
-  `entityStore` + `organizationsController`/`filtersController`/`hotlinesController`
-  normalization verbatim so behavior stays canonical.
-- The upstream PowerBI→RTDB scrape remains an external job, exactly as it always was.
+### 2.5 UPDATE — the scraper was located (audit corrected)
+
+The user then provided the missing repo: **`github.com/the-coll-org/lbresponse-scrapper`**
+(cloned to `/home/chris/repos/lbresponse-scrapper`). This resolves the §2.2 gap.
+The real pipeline:
+
+1. **Scraper (`main.py`)** talks **directly to PowerBI's internal API** (no browser):
+   parses the public embed token, resolves the cluster, walks the report's pages/
+   visuals, and pulls the **Service Mapping** table (`tableEx`) + its slicers via
+   `QueryData`. ~11k rows in ~25s. Filtered to the canonical Service Mapping visual.
+2. It writes raw rows to Firebase `powerbi_data` AND/OR a SQL DB AND/OR **CSV**
+   (`--csv`, `--no-firebase`, `--no-database` flags). Cadence: **every 6 hours**
+   (`.github/workflows/scrape.yml` cron `0 */6 * * *`).
+3. **`scripts/reload_firebase.py`** reads the Service Mapping **CSV**, groups rows by
+   (Organization, District), and emits the denormalized `entities/providers`
+   records the backend consumes — **provider_id = `uuid5(NAMESPACE_URL,
+   "lbresponse:provider:{org_slug}__{district_slug}")`** (deterministic; the same
+   scheme that produced the backup, so live and backup IDs match for the same org).
+   It also builds the `sector`/`district` category groups. Hotlines are **NOT**
+   scraped — they are a separately-maintained Firebase dataset.
+
+**Integration chosen (live, no Firebase writes):** run the scraper in
+`--no-firebase --no-database --csv` mode → `scripts/build_entities_json.py`
+(reuses `reload_firebase`'s `aggregate`/`to_record`/`build_categories`) → writes
+`data/live-entities.json` → `npm run ingest -- --source=live` **upserts** into
+SQLite (update scraped fields, **preserve manual `pinned`/`verified`**, insert new,
+**never delete**, **never touch hotlines**). Orchestrated by `scripts/refresh-live.sh`
+and scheduled every 6h by `scripts/scheduler.mjs` under pm2 (`relief-v2-refresh`).
+See `docs/HANDOFF.md`.
 
 ---
 
