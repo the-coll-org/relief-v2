@@ -249,14 +249,22 @@ export function NeedHelpClient() {
             ))}
           </div>
           {canLoadMore && (
-            <button
-              type="button"
-              onClick={loadMore}
-              disabled={loadingMore}
-              className="mx-auto mt-2 rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
-            >
-              {loadingMore ? tc('loading') : t('loadMore')}
-            </button>
+            <div className="mt-2 flex flex-col items-center gap-2">
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
+              >
+                {loadingMore ? tc('loading') : t('loadMore')}
+              </button>
+              <p className="text-sm font-medium text-text-secondary">
+                <span dir="ltr" className="tabular-nums">
+                  {items.length} / {total}
+                </span>{' '}
+                {t('resultUnit')}
+              </p>
+            </div>
           )}
         </>
       )}

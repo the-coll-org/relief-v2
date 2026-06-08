@@ -260,14 +260,22 @@ export function MapClient() {
                 ))}
               </div>
               {orgs.length < orgTotal && (
-                <button
-                  type="button"
-                  onClick={() => fetchRegion(selectedMarker.id, orgPage + 1, true)}
-                  disabled={loadingMore}
-                  className="mx-auto rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
-                >
-                  {loadingMore ? tc('loading') : tn('loadMore')}
-                </button>
+                <div className="mt-2 flex flex-col items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fetchRegion(selectedMarker.id, orgPage + 1, true)}
+                    disabled={loadingMore}
+                    className="rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
+                  >
+                    {loadingMore ? tc('loading') : tn('loadMore')}
+                  </button>
+                  <p className="text-sm font-medium text-text-secondary">
+                    <span dir="ltr" className="tabular-nums">
+                      {orgs.length} / {orgTotal}
+                    </span>{' '}
+                    {tn('resultUnit')}
+                  </p>
+                </div>
               )}
             </>
           )}
