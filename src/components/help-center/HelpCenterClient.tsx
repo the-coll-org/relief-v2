@@ -10,6 +10,7 @@ import { OrganizationCard } from '@/components/cards/OrganizationCard';
 import { FiltersSheet } from '@/components/ui/FiltersSheet';
 import { MoreFiltersButton } from '@/components/ui/MoreFiltersButton';
 import { useFilterOptions } from '@/components/ui/useFilterOptions';
+import { Pagination } from '@/components/ui/Pagination';
 import { arabicHotlineCategory } from '@/lib/i18nLabels';
 
 const PAGE_SIZE = 12;
@@ -58,7 +59,6 @@ export function HelpCenterClient() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   // "More filters": district → city (slug-matched), service type → categories.
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetDistricts, setSheetDistricts] = useState<string[]>([]);
@@ -122,16 +122,21 @@ export function HelpCenterClient() {
     [activePills, idsToCategories]
   );
 
+  // Reset to page 1 when the search/filters change.
+  useEffect(() => {
+    setPage(1);
+  }, [debounced, activeCategories, activeCity]);
+
+  // Server-side pagination — fetch the current page and replace.
   useEffect(() => {
     const id = ++reqId.current;
     setLoading(true);
-    fetch(buildUrl(1))
+    fetch(buildUrl(page))
       .then((r) => r.json())
       .then((json: { data: EmergencyContact[]; total: number }) => {
         if (id !== reqId.current) return;
         setItems(json.data);
         setTotal(json.total);
-        setPage(1);
       })
       .catch(() => {
         if (id === reqId.current) {
@@ -142,20 +147,13 @@ export function HelpCenterClient() {
       .finally(() => {
         if (id === reqId.current) setLoading(false);
       });
-  }, [buildUrl]);
+  }, [buildUrl, page]);
 
-  const loadMore = useCallback(() => {
-    if (loadingMore || items.length >= total) return;
-    setLoadingMore(true);
-    const next = page + 1;
-    fetch(buildUrl(next))
-      .then((r) => r.json())
-      .then((json: { data: EmergencyContact[] }) => {
-        setItems((prev) => [...prev, ...json.data]);
-        setPage(next);
-      })
-      .finally(() => setLoadingMore(false));
-  }, [buildUrl, loadingMore, items.length, total, page]);
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const goToPage = useCallback((p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   return (
     <div className="flex flex-col gap-md">
@@ -181,7 +179,7 @@ export function HelpCenterClient() {
 
       <p className="text-sm font-medium text-text-secondary">
         <span dir="ltr" className="tabular-nums">
-          {items.length} / {total}
+          {total}
         </span>{' '}
         {t('resultUnit')}
       </p>
@@ -192,7 +190,7 @@ export function HelpCenterClient() {
             <div key={i} className="h-40 animate-pulse rounded-card bg-surface shadow-card" />
           ))}
         </div>
-      ) : items.length === 0 ? (
+      ) : total === 0 ? (
         <div className="rounded-card bg-surface p-xl text-center shadow-card">
           <p className="font-heading text-lg font-semibold text-text-primary">
             {tn('empty.title')}
@@ -206,16 +204,7 @@ export function HelpCenterClient() {
               <OrganizationCard key={h.id} {...toCard(h, isArabic)} />
             ))}
           </div>
-          {items.length < total && (
-            <button
-              type="button"
-              onClick={loadMore}
-              disabled={loadingMore}
-              className="mx-auto mt-2 rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
-            >
-              {loadingMore ? tc('loading') : tn('loadMore')}
-            </button>
-          )}
+          <Pagination page={page} pageCount={pageCount} onChange={goToPage} />
         </>
       )}
 

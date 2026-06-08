@@ -11,6 +11,7 @@ import { OrganizationCard } from '@/components/cards/OrganizationCard';
 import { FiltersSheet } from '@/components/ui/FiltersSheet';
 import { MoreFiltersButton } from '@/components/ui/MoreFiltersButton';
 import { useFilterOptions } from '@/components/ui/useFilterOptions';
+import { Pagination } from '@/components/ui/Pagination';
 import { distanceToDistricts } from '@/lib/districtGeo';
 import { arabicDistrict } from '@/lib/i18nLabels';
 
@@ -61,7 +62,6 @@ export function NeedHelpClient() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
   // "More filters" sheet: districts → location, services → extra categories.
@@ -132,27 +132,24 @@ export function NeedHelpClient() {
     [pillCats]
   );
 
-  // Primary load (page 1) — re-runs on search / filter / geo change.
+  const nearest = nearestActive && !!userCoords;
+
+  // Reset to page 1 whenever the query/filters/geo change.
   useEffect(() => {
+    setPage(1);
+  }, [debounced, activeCategory, activeLocation, nearestActive, userCoords]);
+
+  // Normal mode: server-side pagination — fetch the current page only.
+  useEffect(() => {
+    if (nearest) return;
     const id = ++reqId.current;
     setLoading(true);
-    // "nearest": pull a large set and sort client-side by zone proximity.
-    const pageSize = nearestActive && userCoords ? 100 : PAGE_SIZE;
-    fetch(buildUrl(1, pageSize))
+    fetch(buildUrl(page, PAGE_SIZE))
       .then((r) => r.json())
       .then((json: { data: OrganizationDto[]; total: number }) => {
         if (id !== reqId.current) return;
-        let data = json.data;
-        if (nearestActive && userCoords) {
-          data = [...data].sort(
-            (a, b) =>
-              distanceToDistricts(userCoords, a.locations) -
-              distanceToDistricts(userCoords, b.locations)
-          );
-        }
-        setItems(data);
+        setItems(json.data);
         setTotal(json.total);
-        setPage(1);
       })
       .catch(() => {
         if (id === reqId.current) {
@@ -163,20 +160,44 @@ export function NeedHelpClient() {
       .finally(() => {
         if (id === reqId.current) setLoading(false);
       });
-  }, [buildUrl, nearestActive, userCoords]);
+  }, [buildUrl, page, nearest]);
 
-  const loadMore = useCallback(() => {
-    if (loadingMore || items.length >= total) return;
-    setLoadingMore(true);
-    const next = page + 1;
-    fetch(buildUrl(next, PAGE_SIZE))
+  // "Nearest" mode: fetch a sorted pool once (per filter/geo), paginate client-side.
+  useEffect(() => {
+    if (!nearest || !userCoords) return;
+    const id = ++reqId.current;
+    setLoading(true);
+    fetch(buildUrl(1, 100))
       .then((r) => r.json())
       .then((json: { data: OrganizationDto[] }) => {
-        setItems((prev) => [...prev, ...json.data]);
-        setPage(next);
+        if (id !== reqId.current) return;
+        const data = [...json.data].sort(
+          (a, b) =>
+            distanceToDistricts(userCoords, a.locations) -
+            distanceToDistricts(userCoords, b.locations)
+        );
+        setItems(data);
+        setTotal(data.length);
       })
-      .finally(() => setLoadingMore(false));
-  }, [buildUrl, loadingMore, items.length, total, page]);
+      .catch(() => {
+        if (id === reqId.current) {
+          setItems([]);
+          setTotal(0);
+        }
+      })
+      .finally(() => {
+        if (id === reqId.current) setLoading(false);
+      });
+  }, [buildUrl, nearest, userCoords]);
+
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  // server already paginates; nearest pool is sliced locally
+  const displayed = nearest ? items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : items;
+
+  const goToPage = useCallback((p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const onTogglePill = useCallback(
     (id: string) => {
@@ -205,8 +226,6 @@ export function NeedHelpClient() {
     [activePills, t]
   );
 
-  const canLoadMore = !nearestActive && items.length < total;
-
   return (
     <div className="flex flex-col gap-md">
       <div className="flex items-center gap-2">
@@ -223,7 +242,7 @@ export function NeedHelpClient() {
 
       <p className="text-sm font-medium text-text-secondary">
         <span dir="ltr" className="tabular-nums">
-          {items.length} / {total}
+          {total}
         </span>{' '}
         {t('resultUnit')}
       </p>
@@ -234,7 +253,7 @@ export function NeedHelpClient() {
             <div key={i} className="h-44 animate-pulse rounded-card bg-surface shadow-card" />
           ))}
         </div>
-      ) : items.length === 0 ? (
+      ) : total === 0 ? (
         <div className="rounded-card bg-surface p-xl text-center shadow-card">
           <p className="font-heading text-lg font-semibold text-text-primary">
             {t('empty.title')}
@@ -244,20 +263,11 @@ export function NeedHelpClient() {
       ) : (
         <>
           <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((dto) => (
+            {displayed.map((dto) => (
               <OrganizationCard key={dto.id} {...toCard(dto)} />
             ))}
           </div>
-          {canLoadMore && (
-            <button
-              type="button"
-              onClick={loadMore}
-              disabled={loadingMore}
-              className="mx-auto mt-2 rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
-            >
-              {loadingMore ? tc('loading') : t('loadMore')}
-            </button>
-          )}
+          <Pagination page={page} pageCount={pageCount} onChange={goToPage} />
         </>
       )}
 
