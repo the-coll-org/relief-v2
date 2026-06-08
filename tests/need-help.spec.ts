@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 
 test('search narrows results and the count updates', async ({ page }) => {
   await page.goto('/en');
-  const count = page.getByText(/\/\s*\d+\s*organizations/);
+  const count = page.getByText(/\/\s*\d+\s*organizations/).first();
   await expect(count).toBeVisible();
   const before = await count.textContent();
 
@@ -18,7 +18,7 @@ test('search narrows results and the count updates', async ({ page }) => {
 
 test('a sector pill filters results', async ({ page }) => {
   await page.goto('/en');
-  const count = page.getByText(/\/\s*\d+\s*organizations/);
+  const count = page.getByText(/\/\s*\d+\s*organizations/).first();
   // wait for the initial fetch to resolve (first card present)
   await expect(page.locator('article').first()).toBeVisible();
   const totalOf = async () =>
@@ -32,7 +32,7 @@ test('a sector pill filters results', async ({ page }) => {
 
 test('multiple filters widen results (OR)', async ({ page }) => {
   await page.goto('/en');
-  const count = page.getByText(/\/\s*\d+\s*organizations/);
+  const count = page.getByText(/\/\s*\d+\s*organizations/).first();
   await expect(page.locator('article').first()).toBeVisible();
   const totalOf = async () =>
     Number((await count.textContent())?.match(/\/\s*(\d+)/)?.[1] ?? '0');
