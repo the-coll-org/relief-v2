@@ -92,7 +92,7 @@ export function LebanonMap({
         viewBox="0 0 250 326"
         role="img"
         aria-label={t('aria')}
-        className="h-[60vh] max-h-[520px] w-full touch-none"
+        className="h-[54vh] max-h-[468px] w-full touch-none sm:h-[60vh] sm:max-h-[520px]"
       >
         <image href="/map.svg" x="0" y="0" width="250" height="326" opacity="0.9" />
         {MAP_MARKERS.map((m) => {
