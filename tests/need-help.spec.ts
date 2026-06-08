@@ -9,11 +9,10 @@ test('numbered pagination navigates between pages', async ({ page }) => {
   await expect(pager).toBeVisible();
 
   const firstOnP1 = await page.locator('article h3').first().textContent();
-  await pager.getByRole('button', { name: 'Page 2' }).click();
-  await expect(pager.getByRole('button', { name: 'Page 2' })).toHaveAttribute(
-    'aria-current',
-    'page'
-  );
+  await pager.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await expect(
+    pager.getByRole('button', { name: 'Page 2', exact: true })
+  ).toHaveAttribute('aria-current', 'page');
   // a different page shows different organizations
   await expect
     .poll(async () => page.locator('article h3').first().textContent())
@@ -76,7 +75,7 @@ test('call button renders a valid tel: href', async ({ page }) => {
 test('RTL: Arabic renders the screen without crashing and dir=rtl', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByText(/\/\s*\d+/).first()).toBeVisible();
+  await expect(page.getByText(/\d+\s+منظمة/).first()).toBeVisible();
   // at least one card present
   await expect(page.locator('article').first()).toBeVisible();
 });
