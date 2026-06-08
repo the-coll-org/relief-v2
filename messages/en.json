@@ -23,12 +23,6 @@
     "loading": "Loading…",
     "scrollToTop": "Scroll to top"
   },
-  "pagination": {
-    "label": "Pagination",
-    "previous": "Previous page",
-    "next": "Next page",
-    "page": "Page {page}"
-  },
   "filters": {
     "button": "More filters",
     "title": "Filter Results",

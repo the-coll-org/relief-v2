@@ -32,10 +32,10 @@ test('hotlines are visible above the fold at 390x844', async ({ page }) => {
 
 test('search filters the directory', async ({ page }) => {
   await page.goto('/en/help-center');
-  const count = page.getByText(/\d+\s+results/);
+  const count = page.getByText(/\/\s*\d+\s*results/);
   await expect(page.locator('article').first()).toBeVisible();
   const totalOf = async () =>
-    Number((await count.textContent())?.match(/(\d+)\s+results/)?.[1] ?? '0');
+    Number((await count.textContent())?.match(/\/\s*(\d+)/)?.[1] ?? '0');
   await expect.poll(totalOf).toBeGreaterThan(10);
   const all = await totalOf();
 
@@ -46,10 +46,10 @@ test('search filters the directory', async ({ page }) => {
 
 test('service-type pill filters the directory', async ({ page }) => {
   await page.goto('/en/help-center');
-  const count = page.getByText(/\d+\s+results/);
+  const count = page.getByText(/\/\s*\d+\s*results/);
   await expect(page.locator('article').first()).toBeVisible();
   const totalOf = async () =>
-    Number((await count.textContent())?.match(/(\d+)\s+results/)?.[1] ?? '0');
+    Number((await count.textContent())?.match(/\/\s*(\d+)/)?.[1] ?? '0');
   await expect.poll(totalOf).toBeGreaterThan(10);
   const all = await totalOf();
   await page.getByRole('button', { name: 'Cash & Livelihood' }).click();

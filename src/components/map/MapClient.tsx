@@ -13,7 +13,6 @@ import { FiltersSheet } from '@/components/ui/FiltersSheet';
 import { MoreFiltersButton } from '@/components/ui/MoreFiltersButton';
 import { useFilterOptions } from '@/components/ui/useFilterOptions';
 import { arabicDistrict } from '@/lib/i18nLabels';
-import { Pagination } from '@/components/ui/Pagination';
 import { LebanonMap } from './LebanonMap';
 
 const PAGE_SIZE = 10;
@@ -50,6 +49,7 @@ function toCard(dto: OrganizationDto) {
 export function MapClient() {
   const t = useTranslations('map');
   const tn = useTranslations('needHelp');
+  const tc = useTranslations('common');
   const tf = useTranslations('filters');
   const focusParam = useSearchParams().get('focus');
 
@@ -60,6 +60,7 @@ export function MapClient() {
   const [orgTotal, setOrgTotal] = useState(0);
   const [orgPage, setOrgPage] = useState(1);
   const [loadingOrgs, setLoadingOrgs] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   // "More filters": Service Type only — location on the map is the tapped region.
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -111,11 +112,12 @@ export function MapClient() {
   );
 
   const fetchRegion = useCallback(
-    (markerId: string, page: number) => {
+    (markerId: string, page: number, append: boolean) => {
       const marker = MAP_MARKERS.find((m) => m.id === markerId);
       if (!marker) return;
       const id = ++orgReq.current;
-      setLoadingOrgs(true);
+      if (append) setLoadingMore(true);
+      else setLoadingOrgs(true);
       const p = new URLSearchParams();
       p.set('location', marker.regionIds.join(','));
       p.set('page', String(page));
@@ -125,12 +127,15 @@ export function MapClient() {
         .then((r) => r.json())
         .then((json: { data: OrganizationDto[]; total: number }) => {
           if (id !== orgReq.current) return;
-          setOrgs(json.data);
+          setOrgs((prev) => (append ? [...prev, ...json.data] : json.data));
           setOrgTotal(json.total);
           setOrgPage(page);
         })
         .finally(() => {
-          if (id === orgReq.current) setLoadingOrgs(false);
+          if (id === orgReq.current) {
+            setLoadingOrgs(false);
+            setLoadingMore(false);
+          }
         });
     },
     [category]
@@ -145,7 +150,7 @@ export function MapClient() {
       if (lastSel.current.id === markerId && now - lastSel.current.t < 600) return;
       lastSel.current = { id: markerId, t: now };
       setSelected(markerId);
-      fetchRegion(markerId, 1);
+      fetchRegion(markerId, 1, false);
     },
     [fetchRegion]
   );
@@ -163,7 +168,7 @@ export function MapClient() {
 
   // Re-fetch the open region when the category filter changes.
   useEffect(() => {
-    if (selected) fetchRegion(selected, 1);
+    if (selected) fetchRegion(selected, 1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
@@ -254,11 +259,16 @@ export function MapClient() {
                   <OrganizationCard key={dto.id} {...toCard(dto)} />
                 ))}
               </div>
-              <Pagination
-                page={orgPage}
-                pageCount={Math.max(1, Math.ceil(orgTotal / PAGE_SIZE))}
-                onChange={(p) => fetchRegion(selectedMarker.id, p)}
-              />
+              {orgs.length < orgTotal && (
+                <button
+                  type="button"
+                  onClick={() => fetchRegion(selectedMarker.id, orgPage + 1, true)}
+                  disabled={loadingMore}
+                  className="mx-auto rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
+                >
+                  {loadingMore ? tc('loading') : tn('loadMore')}
+                </button>
+              )}
             </>
           )}
         </section>
