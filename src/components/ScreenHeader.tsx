@@ -6,15 +6,21 @@ import { LanguageToggle } from './LanguageToggle';
 type Screen = 'needHelp' | 'helpCenter' | 'map';
 
 function FeedbackIcon() {
+  // Megaphone — reads clearly as "give feedback / share your voice".
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M4 5h16v10H8l-4 4V5Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m3 11 18-5v12L3 14v-3z" />
+      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
     </svg>
   );
 }
