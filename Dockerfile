@@ -16,6 +16,10 @@ COPY package*.json ./
 COPY prisma ./prisma
 RUN npm ci
 COPY . .
+# Public origin baked into the statically-generated share/OG metadata.
+# Default = prod; override per env: --build-arg SITE_URL=https://testing-rn.thecoll.org
+ARG SITE_URL=https://rn.thecoll.org
+ENV SITE_URL=$SITE_URL
 # A throwaway DB so any build-time Prisma access (static generation) succeeds;
 # the real DB lives on the runtime volume.
 ENV DATABASE_URL=file:/tmp/build.db

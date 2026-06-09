@@ -10,6 +10,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # Baked into the share/OG metadata at build time (statically generated).
+        SITE_URL: ${SITE_URL:-https://rn.thecoll.org}
     environment:
       - DATABASE_URL=file:/data/relief.db
       # Public origin used for share/OG metadata. Override per environment:
