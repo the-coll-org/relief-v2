@@ -12,6 +12,10 @@ services:
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=file:/data/relief.db
+      # Public origin used for share/OG metadata. Override per environment:
+      #   prod (main):     SITE_URL=https://rn.thecoll.org (default)
+      #   testing (develop): SITE_URL=https://testing-rn.thecoll.org
+      - SITE_URL=${SITE_URL:-https://rn.thecoll.org}
     volumes:
       - reliefdb:/data
     ports:

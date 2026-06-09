@@ -29,13 +29,50 @@ const cairo = Cairo({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'Relief Network — The Collective',
-  description:
-    'Find food, shelter, medical care and emergency hotlines across Lebanon.',
-  manifest: '/manifest.webmanifest',
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Relief Network' },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isAr = locale === 'ar';
+  // Each environment self-describes via SITE_URL (set per container); prod default.
+  const base = process.env.SITE_URL ?? 'https://rn.thecoll.org';
+  const title = isAr ? 'شبكة الإغاثة — ذا كولكتيف' : 'Relief Network — The Collective';
+  const description = isAr
+    ? 'اعثر بسرعة على الطعام والمأوى والرعاية الطبية وخطوط الطوارئ في جميع أنحاء لبنان.'
+    : 'Find food, shelter, medical care and emergency hotlines across Lebanon — fast.';
+  const pageUrl = isAr ? base : `${base}/en`;
+
+  return {
+    metadataBase: new URL(base),
+    title,
+    description,
+    manifest: '/manifest.webmanifest',
+    appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Relief Network' },
+    alternates: {
+      canonical: isAr ? '/' : '/en',
+      languages: { ar: '/', en: '/en' },
+    },
+    openGraph: {
+      type: 'website',
+      siteName: 'Relief Network — The Collective',
+      title,
+      description,
+      url: pageUrl,
+      locale: isAr ? 'ar_LB' : 'en_US',
+      images: [
+        { url: '/og.png', width: 1200, height: 630, alt: 'Relief Network — The Collective' },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/og.png'],
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: '#2d4369',
