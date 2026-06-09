@@ -14,7 +14,7 @@ services:
         # Baked into the share/OG metadata at build time (statically generated).
         SITE_URL: ${SITE_URL:-https://rn.thecoll.org}
         # Self-hosted Fider feedback board URL; empty hides the in-app link.
-        FEEDBACK_URL: ${FEEDBACK_URL:-}
+        FEEDBACK_URL: ${FEEDBACK_URL:-https://requests.thecoll.org}
     environment:
       - DATABASE_URL=file:/data/relief.db
       # Public origin used for share/OG metadata. Override per environment:
