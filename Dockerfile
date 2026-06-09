@@ -20,6 +20,10 @@ COPY . .
 # Default = prod; override per env: --build-arg SITE_URL=https://testing-rn.thecoll.org
 ARG SITE_URL=https://rn.thecoll.org
 ENV SITE_URL=$SITE_URL
+# URL of the self-hosted Fider feedback board. Empty = the in-app Feedback link
+# stays hidden. Set once Fider is live (see docs/FEEDBACK-FIDER-HANDOFF.md).
+ARG FEEDBACK_URL=
+ENV FEEDBACK_URL=$FEEDBACK_URL
 # A throwaway DB so any build-time Prisma access (static generation) succeeds;
 # the real DB lives on the runtime volume.
 ENV DATABASE_URL=file:/tmp/build.db

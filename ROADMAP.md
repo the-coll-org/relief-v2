@@ -2,11 +2,13 @@
 
 Living list of upcoming work. Newest/most-relevant at the top of each section.
 
-## Planned
+## In progress
 
-- **Installing Fider to manage features** — stand up a [Fider](https://fider.io)
-  instance to collect, vote on, and triage feature requests / feedback for the
-  Relief Network product.
+- **Fider feedback board** — self-hosted public board for feature requests /
+  feedback (vote, comment, triage). App side is wired: a build-time `FEEDBACK_URL`
+  surfaces a "Feedback & ideas" link in the header (hidden until set). Remaining:
+  infra deploys Fider + a `requests.thecoll.org` subdomain and sets `FEEDBACK_URL`.
+  See **docs/FEEDBACK-FIDER-HANDOFF.md**.
 
 ## Infra / cutover (in progress)
 

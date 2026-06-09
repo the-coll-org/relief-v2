@@ -10,14 +10,24 @@
     "aria": "Main navigation"
   },
   "header": {
-    "needHelp": { "title": "Need Help", "subtitle": "Choose the type of support you need" },
-    "helpCenter": { "title": "Help Center", "subtitle": "Emergency hotlines and the help directory" },
-    "map": { "title": "Resource Map", "subtitle": "Live view of active organizations on the ground" }
+    "needHelp": {
+      "title": "Need Help",
+      "subtitle": "Choose the type of support you need"
+    },
+    "helpCenter": {
+      "title": "Help Center",
+      "subtitle": "Emergency hotlines and the help directory"
+    },
+    "map": {
+      "title": "Resource Map",
+      "subtitle": "Live view of active organizations on the ground"
+    }
   },
   "actions": {
     "toggleTheme": "Toggle dark mode",
     "toggleLanguage": "العربية",
-    "languageName": "EN"
+    "languageName": "EN",
+    "feedback": "Feedback & ideas"
   },
   "common": {
     "loading": "Loading…",

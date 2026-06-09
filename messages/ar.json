@@ -10,14 +10,24 @@
     "aria": "التنقل الرئيسي"
   },
   "header": {
-    "needHelp": { "title": "أحتاج مساعدة", "subtitle": "اختر نوع المساعدة التي تحتاجها" },
-    "helpCenter": { "title": "مركز المساعدة", "subtitle": "خطوط الطوارئ ودليل المساعدة" },
-    "map": { "title": "خريطة الموارد", "subtitle": "عرض مباشر للمنظمات الفاعلة على الأرض" }
+    "needHelp": {
+      "title": "أحتاج مساعدة",
+      "subtitle": "اختر نوع المساعدة التي تحتاجها"
+    },
+    "helpCenter": {
+      "title": "مركز المساعدة",
+      "subtitle": "خطوط الطوارئ ودليل المساعدة"
+    },
+    "map": {
+      "title": "خريطة الموارد",
+      "subtitle": "عرض مباشر للمنظمات الفاعلة على الأرض"
+    }
   },
   "actions": {
     "toggleTheme": "تبديل الوضع الداكن",
     "toggleLanguage": "English",
-    "languageName": "ع"
+    "languageName": "ع",
+    "feedback": "ملاحظات واقتراحات"
   },
   "common": {
     "loading": "جارٍ التحميل…",

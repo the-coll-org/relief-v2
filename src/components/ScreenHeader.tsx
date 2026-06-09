@@ -5,13 +5,32 @@ import { LanguageToggle } from './LanguageToggle';
 
 type Screen = 'needHelp' | 'helpCenter' | 'map';
 
+function FeedbackIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 5h16v10H8l-4 4V5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /**
  * Navy app header: brand mark + page title/subtitle on the start side,
- * language + dark-mode toggles on the end side. Rendered at the top of each
- * screen. RTL-aware via logical properties (start/end).
+ * language + dark-mode toggles (+ optional Feedback link) on the end side.
+ * RTL-aware via logical properties (start/end).
  */
 export function ScreenHeader({ screen }: { screen: Screen }) {
   const t = useTranslations('header');
+  const ta = useTranslations('actions');
+  // Configured at build via FEEDBACK_URL (points at the self-hosted Fider board).
+  // Hidden until set, so it stays invisible until feedback hosting is live.
+  const feedbackUrl = process.env.FEEDBACK_URL;
+
   return (
     <header className="rounded-b-card bg-primary px-md pb-lg pt-md text-text-inverse shadow-card">
       <div className="flex items-start justify-between gap-md">
@@ -21,12 +40,22 @@ export function ScreenHeader({ screen }: { screen: Screen }) {
             <h1 className="font-heading text-xl font-bold leading-tight">
               {t(`${screen}.title`)}
             </h1>
-            <p className="text-sm text-text-inverse/80">
-              {t(`${screen}.subtitle`)}
-            </p>
+            <p className="text-sm text-text-inverse/80">{t(`${screen}.subtitle`)}</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {feedbackUrl && (
+            <a
+              href={feedbackUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={ta('feedback')}
+              title={ta('feedback')}
+              className="grid h-10 w-10 place-items-center rounded-pill bg-white/15 text-text-inverse transition-colors hover:bg-white/25"
+            >
+              <FeedbackIcon />
+            </a>
+          )}
           <LanguageToggle />
           <ThemeToggle />
         </div>
