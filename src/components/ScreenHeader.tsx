@@ -55,6 +55,7 @@ export function ScreenHeader({ screen }: { screen: Screen }) {
               href={feedbackUrl}
               target="_blank"
               rel="noopener noreferrer"
+              data-umami-event="feedback_open"
               aria-label={ta('feedback')}
               title={ta('feedback')}
               className="grid h-10 w-10 place-items-center rounded-pill bg-white/15 text-text-inverse transition-colors hover:bg-white/25"

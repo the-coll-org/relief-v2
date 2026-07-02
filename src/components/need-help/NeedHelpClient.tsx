@@ -46,6 +46,7 @@ function toCard(dto: OrganizationDto) {
     whatsapp: dto.whatsapp,
     updated_at: dto.updated_at,
     mapHref: dto.locations[0] ? `/map?focus=${slug(dto.locations[0])}` : '/map',
+    id: dto.id,
   };
 }
 
@@ -219,7 +220,12 @@ export function NeedHelpClient() {
           onClick={() => setSheetOpen(true)}
         />
       </div>
-      <FilterPills pills={pills} activeIds={activePills} onToggle={onTogglePill} />
+      <FilterPills
+        pills={pills}
+        activeIds={activePills}
+        onToggle={onTogglePill}
+        source="need_help"
+      />
 
       <p className="text-sm font-medium text-text-secondary">
         <span dir="ltr" className="tabular-nums">
@@ -245,7 +251,7 @@ export function NeedHelpClient() {
         <>
           <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
             {items.map((dto) => (
-              <OrganizationCard key={dto.id} {...toCard(dto)} />
+              <OrganizationCard key={dto.id} {...toCard(dto)} source="need_help" />
             ))}
           </div>
           {canLoadMore && (
@@ -254,6 +260,8 @@ export function NeedHelpClient() {
                 type="button"
                 onClick={loadMore}
                 disabled={loadingMore}
+                data-umami-event="load_more"
+                data-umami-event-source="need_help"
                 className="rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
               >
                 {loadingMore ? tc('loading') : t('loadMore')}
@@ -287,6 +295,7 @@ export function NeedHelpClient() {
         initialDistricts={sheetDistricts}
         initialServices={sheetServices}
         fetchCount={fetchSheetCount}
+        source="need_help"
         onApply={(d, s) => {
           setSheetDistricts(d);
           setSheetServices(s);

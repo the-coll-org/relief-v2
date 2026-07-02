@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -100,6 +101,12 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
+  // Self-hosted Umami analytics: only load when infra has supplied both values
+  // (per environment). Unset → no tracker, so dev and un-provisioned builds
+  // stay tracking-free. Honors Do-Not-Track; cookieless by default.
+  const umamiSrc = process.env.UMAMI_SRC;
+  const umamiWebsiteId = process.env.UMAMI_WEBSITE_ID;
+
   return (
     <html
       lang={locale}
@@ -111,6 +118,14 @@ export default async function LocaleLayout({
         <ThemeScript />
       </head>
       <body className="min-h-dvh bg-light text-text-primary antialiased">
+        {umamiSrc && umamiWebsiteId && (
+          <Script
+            src={umamiSrc}
+            data-website-id={umamiWebsiteId}
+            data-do-not-track="true"
+            strategy="afterInteractive"
+          />
+        )}
         <NextIntlClientProvider messages={messages}>
           <PWA />
           <div className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col pb-28">

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { track } from '@/lib/analytics';
 import type { EmergencyContact } from '@/lib/types';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { FilterPills, type Pill } from '@/components/ui/FilterPills';
@@ -40,6 +41,7 @@ function toCard(h: EmergencyContact, isArabic: boolean) {
     whatsapp: null as string | null,
     updated_at: null as string | null,
     mapHref: city ? `/map?focus=${slug(city)}` : null,
+    id: h.id,
   };
 }
 
@@ -65,6 +67,9 @@ export function HelpCenterClient() {
   const [sheetServices, setSheetServices] = useState<string[]>([]);
   const { districts: districtOptions } = useFilterOptions();
   const reqId = useRef(0);
+  // Fires once per mount when the user first types a query — no query text, so
+  // no PII; just answers "do people use search?".
+  const searchedRef = useRef(false);
 
   const serviceOptions = useMemo(
     () => SERVICE_PILLS.map((p) => ({ id: p.id, label: t(`services.${p.id}`) })),
@@ -161,7 +166,17 @@ export function HelpCenterClient() {
     <div className="flex flex-col gap-md">
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
-          <SearchBar value={query} onChange={setQuery} placeholder={t('searchPlaceholder')} />
+          <SearchBar
+            value={query}
+            onChange={(v) => {
+              if (!searchedRef.current && v.trim()) {
+                searchedRef.current = true;
+                track('help_search');
+              }
+              setQuery(v);
+            }}
+            placeholder={t('searchPlaceholder')}
+          />
         </div>
         <MoreFiltersButton
           label={tf('button')}
@@ -177,6 +192,7 @@ export function HelpCenterClient() {
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
           )
         }
+        source="help_center"
       />
 
       <p className="text-sm font-medium text-text-secondary">
@@ -203,7 +219,7 @@ export function HelpCenterClient() {
         <>
           <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
             {items.map((h) => (
-              <OrganizationCard key={h.id} {...toCard(h, isArabic)} />
+              <OrganizationCard key={h.id} {...toCard(h, isArabic)} source="help_center" />
             ))}
           </div>
           {items.length < total && (
@@ -212,6 +228,8 @@ export function HelpCenterClient() {
                 type="button"
                 onClick={loadMore}
                 disabled={loadingMore}
+                data-umami-event="load_more"
+                data-umami-event-source="help_center"
                 className="rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
               >
                 {loadingMore ? tc('loading') : tn('loadMore')}
@@ -244,6 +262,7 @@ export function HelpCenterClient() {
         initialDistricts={sheetDistricts}
         initialServices={sheetServices}
         fetchCount={fetchSheetCount}
+        source="help_center"
         onApply={(d, s) => {
           setSheetDistricts(d);
           setSheetServices(s);

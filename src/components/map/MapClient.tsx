@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
+import { track } from '@/lib/analytics';
 import type { MapRegionGroup, OrganizationDto } from '@/lib/types';
 import { MAP_MARKERS, markerForRegion } from '@/lib/mapRegions';
 import { distanceToDistricts } from '@/lib/districtGeo';
@@ -43,6 +44,7 @@ function toCard(dto: OrganizationDto) {
     whatsapp: dto.whatsapp,
     updated_at: dto.updated_at,
     mapHref: null,
+    id: dto.id,
   };
 }
 
@@ -149,6 +151,7 @@ export function MapClient() {
       const now = Date.now();
       if (lastSel.current.id === markerId && now - lastSel.current.t < 600) return;
       lastSel.current = { id: markerId, t: now };
+      track('map_pin_tap', { region: markerId });
       setSelected(markerId);
       fetchRegion(markerId, 1, false);
     },
@@ -211,7 +214,12 @@ export function MapClient() {
     <div className="flex flex-col gap-md">
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1">
-          <FilterPills pills={pills} activeIds={activePills} onToggle={onTogglePill} />
+          <FilterPills
+            pills={pills}
+            activeIds={activePills}
+            onToggle={onTogglePill}
+            source="map"
+          />
         </div>
         <MoreFiltersButton
           label={tf('button')}
@@ -256,7 +264,7 @@ export function MapClient() {
             <>
               <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
                 {orgs.map((dto) => (
-                  <OrganizationCard key={dto.id} {...toCard(dto)} />
+                  <OrganizationCard key={dto.id} {...toCard(dto)} source="map" />
                 ))}
               </div>
               {orgs.length < orgTotal && (
@@ -265,6 +273,8 @@ export function MapClient() {
                     type="button"
                     onClick={() => fetchRegion(selectedMarker.id, orgPage + 1, true)}
                     disabled={loadingMore}
+                    data-umami-event="load_more"
+                    data-umami-event-source="map"
                     className="rounded-button bg-primary px-lg py-2.5 text-sm font-semibold text-text-inverse disabled:opacity-60"
                   >
                     {loadingMore ? tc('loading') : tn('loadMore')}
@@ -303,6 +313,7 @@ export function MapClient() {
         initialDistricts={[]}
         initialServices={sheetServices}
         fetchCount={fetchSheetCount}
+        source="map"
         onApply={(_d, s) => {
           setSheetServices(s);
           setSheetOpen(false);

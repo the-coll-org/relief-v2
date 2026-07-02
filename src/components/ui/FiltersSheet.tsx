@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { track } from '@/lib/analytics';
 
 export interface ChipOption {
   id: string;
@@ -24,6 +25,8 @@ interface FiltersSheetProps {
   /** Live count for the current pending selection (debounced by the sheet). */
   fetchCount: (districts: string[], services: string[]) => Promise<number>;
   onApply: (districts: string[], services: string[]) => void;
+  /** Screen for analytics attribution (need_help/help_center/map). */
+  source?: string;
 }
 
 function Chip({
@@ -159,7 +162,14 @@ export function FiltersSheet(props: FiltersSheetProps) {
         <div className="flex items-center gap-3 border-t border-black/10 px-md py-3 pb-[max(env(safe-area-inset-bottom),12px)]">
           <button
             type="button"
-            onClick={() => props.onApply(districts, services)}
+            onClick={() => {
+              track('filter_apply', {
+                districts: districts.length,
+                services: services.length,
+                source: props.source ?? 'unknown',
+              });
+              props.onApply(districts, services);
+            }}
             className="flex-1 rounded-button bg-primary px-md py-3 text-sm font-semibold text-text-inverse"
           >
             {props.applyLabel(count ?? 0)}

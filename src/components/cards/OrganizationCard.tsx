@@ -21,6 +21,10 @@ export interface OrgCardData {
   updated_at: string | null;
   /** Map deep-link, e.g. "/map?focus=akkar". Omit/null to hide the map button. */
   mapHref?: string | null;
+  /** Provider id — analytics attribution only (which providers get called). */
+  id?: string | null;
+  /** Screen the card is rendered on, for analytics: need_help | help_center | map. */
+  source?: 'need_help' | 'help_center' | 'map';
 }
 
 function PhoneIcon() {
@@ -127,6 +131,9 @@ export function OrganizationCard(props: OrgCardData) {
         {phone ? (
           <a
             href={`tel:${phone}`}
+            data-umami-event="call_tap"
+            data-umami-event-source={props.source}
+            data-umami-event-provider={props.id ?? undefined}
             className="flex flex-1 items-center justify-center gap-2 rounded-button bg-primary px-md py-2.5 text-sm font-semibold text-text-inverse"
           >
             <PhoneIcon />

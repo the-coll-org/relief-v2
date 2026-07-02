@@ -15,6 +15,10 @@ services:
         SITE_URL: ${SITE_URL:-https://rn.thecoll.org}
         # Self-hosted Fider feedback board URL; empty hides the in-app link.
         FEEDBACK_URL: ${FEEDBACK_URL:-https://requests.thecoll.org}
+        # Self-hosted Umami analytics (cookieless). Empty = disabled. Set per
+        # checkout via env; the website-id differs prod vs testing.
+        UMAMI_SRC: ${UMAMI_SRC:-}
+        UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
     environment:
       - DATABASE_URL=file:/data/relief.db
       # Public origin used for share/OG metadata. Override per environment:

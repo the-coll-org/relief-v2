@@ -22,9 +22,9 @@ export function LanguageToggle() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const nextLocale = locale === 'ar' ? 'en' : 'ar';
   function switchLanguage() {
-    const next = locale === 'ar' ? 'en' : 'ar';
-    router.replace(pathname, { locale: next });
+    router.replace(pathname, { locale: nextLocale });
   }
 
   return (
@@ -32,6 +32,8 @@ export function LanguageToggle() {
       type="button"
       onClick={switchLanguage}
       aria-label={t('toggleLanguage')}
+      data-umami-event="language_switch"
+      data-umami-event-to={nextLocale}
       className="flex h-10 items-center gap-2 rounded-pill bg-white/15 px-3 text-sm font-semibold text-text-inverse transition-colors hover:bg-white/25"
     >
       <GlobeIcon />

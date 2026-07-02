@@ -47,6 +47,8 @@ export async function EmergencyHotlines({ locale }: { locale: string }) {
           <a
             key={h.id}
             href={`tel:${h.number}`}
+            data-umami-event="hotline_tap"
+            data-umami-event-hotline={h.id}
             className="flex min-h-[64px] items-center gap-3 rounded-card bg-accent-red px-md py-3 text-text-inverse shadow-card"
           >
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-white/15">

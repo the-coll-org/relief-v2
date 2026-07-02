@@ -24,6 +24,14 @@ ENV SITE_URL=$SITE_URL
 # stays hidden. Set once Fider is live (see docs/FEEDBACK-FIDER-HANDOFF.md).
 ARG FEEDBACK_URL=
 ENV FEEDBACK_URL=$FEEDBACK_URL
+# Self-hosted Umami analytics (cookieless). Both empty = tracker disabled.
+# UMAMI_WEBSITE_ID is per-environment (prod vs testing); infra supplies both
+# (see docs/ANALYTICS-UMAMI-INFRA-HANDOFF.md). Baked into the statically
+# generated HTML, so they must be set before `npm run build` below.
+ARG UMAMI_SRC=
+ENV UMAMI_SRC=$UMAMI_SRC
+ARG UMAMI_WEBSITE_ID=
+ENV UMAMI_WEBSITE_ID=$UMAMI_WEBSITE_ID
 # A throwaway DB so any build-time Prisma access (static generation) succeeds;
 # the real DB lives on the runtime volume.
 ENV DATABASE_URL=file:/tmp/build.db
