@@ -14,5 +14,8 @@ data/live-entities.json
 data/backup-lbresponse-db.json
 logs/
 
+# Detached build worktrees created by scripts/deploy.sh (canonical clone only).
+.deploy/
+
 # Internal ops handoff — server IP + credential pointers; never in the public repo.
 infra-handoff.md
