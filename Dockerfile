@@ -25,9 +25,8 @@ ENV SITE_URL=$SITE_URL
 ARG FEEDBACK_URL=
 ENV FEEDBACK_URL=$FEEDBACK_URL
 # Self-hosted Umami analytics (cookieless). Both empty = tracker disabled.
-# UMAMI_WEBSITE_ID is per-environment (prod vs testing); infra supplies both
-# (see docs/ANALYTICS-UMAMI-INFRA-HANDOFF.md). Baked into the statically
-# generated HTML, so they must be set before `npm run build` below.
+# UMAMI_WEBSITE_ID is per-environment (prod vs testing). Baked into the
+# statically generated HTML, so both must be set before `npm run build` below.
 ARG UMAMI_SRC=
 ENV UMAMI_SRC=$UMAMI_SRC
 ARG UMAMI_WEBSITE_ID=
